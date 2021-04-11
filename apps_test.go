@@ -25,6 +25,7 @@ func TestFakeApp(t *testing.T) {
 		json       FakeAppJSONResponse
 	}{
 		{desc: "is busy", statusCode: 200, json: FakeAppJSONResponse{IsBusy: true}},
+		{desc: "is not busy", statusCode: 200, json: FakeAppJSONResponse{IsBusy: false}},
 	}
 
 	for _, tC := range testCases {
