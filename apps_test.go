@@ -12,7 +12,10 @@ import (
 func TestNotImplementedApp(t *testing.T) {
 	assert := assert.New(t)
 	appName := "NotImplementedApp"
-	sut, err := NewApp(appName)
+	httpClient, err := NewHTTPClient("no-auth", nil)
+	assert.NoError(err)
+
+	sut, err := NewApp(appName, httpClient)
 
 	assert.Nil(sut)
 	assert.EqualError(err, fmt.Sprintf("%s is not implemented", appName))
@@ -20,18 +23,22 @@ func TestNotImplementedApp(t *testing.T) {
 
 func TestFakeApp(t *testing.T) {
 	var testCases = []struct {
-		desc       string
-		statusCode int
-		json       FakeAppJSONResponse
+		desc           string
+		statusCode     int
+		json           FakeAppJSONResponse
+		httpClientType string
+		authConfig     interface{}
 	}{
-		{desc: "is busy", statusCode: 200, json: FakeAppJSONResponse{IsBusy: true}},
-		{desc: "is not busy", statusCode: 200, json: FakeAppJSONResponse{IsBusy: false}},
+		{desc: "is busy", statusCode: 200, json: FakeAppJSONResponse{IsBusy: true}, httpClientType: "no-auth", authConfig: nil},
+		{desc: "is not busy", statusCode: 200, json: FakeAppJSONResponse{IsBusy: false}, httpClientType: "no-auth", authConfig: nil},
 	}
 
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 			jsonMap := structs.Map(tC.json)
+			httpClient, err := NewHTTPClient(tC.httpClientType, tC.authConfig)
+			assert.NoError(err)
 
 			gock.New(FAKEAPP_API_URL).
 				Get(FAKEAPP_PATH).
@@ -39,7 +46,7 @@ func TestFakeApp(t *testing.T) {
 				JSON(jsonMap)
 			defer gock.Off()
 
-			sut, err := NewApp("fake")
+			sut, err := NewApp("fake", httpClient)
 			assert.NoError(err)
 
 			res, err := sut.isBusy()

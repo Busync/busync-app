@@ -15,10 +15,10 @@ type app interface {
 	isBusy() (bool, error)
 }
 
-func NewApp(appName string) (app, error) {
+func NewApp(appName string, client *http.Client) (app, error) {
 	switch appName {
 	case "fake":
-		return &FakeApp{}, nil
+		return &FakeApp{client}, nil
 	default:
 		return nil, fmt.Errorf("%s is not implemented", appName)
 	}
@@ -28,10 +28,12 @@ type FakeAppJSONResponse struct {
 	IsBusy bool `json:"isBusy"`
 }
 
-type FakeApp struct{}
+type FakeApp struct {
+	client *http.Client
+}
 
 func (f *FakeApp) isBusy() (bool, error) {
-	resp, err := http.Get(FAKEAPP_API_URL + FAKEAPP_PATH)
+	resp, err := f.client.Get(FAKEAPP_API_URL + FAKEAPP_PATH)
 	if err != nil {
 		return false, err
 	}
