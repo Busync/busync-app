@@ -4,27 +4,37 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoadConfigInGivenFormat(t *testing.T) {
-	testCases := []struct {
-		desc       string
-		fileFormat string
+func NewFileSystem() afero.Afero {
+	return afero.Afero{Fs: afero.NewMemMapFs()}
+}
+
+func TestLoaders(t *testing.T) {
+	var testCases = []struct {
+		desc     string
+		filepath string
+		loader   func(afero.Afero, string, interface{}) error
 	}{
 		{
-			desc:       "file format not implemented",
-			fileFormat: "foobar",
+			desc:     "toml file",
+			filepath: "/" + TOML_CONFIG_FILE,
+			loader:   LoadTOMLFile,
 		},
 	}
 	for _, tC := range testCases {
-		t.Run(tC.desc, func(t *testing.T) {
+		t.Run(tC.desc+"/file_not_found", func(t *testing.T) {
 			assert := assert.New(t)
+			fs := NewFileSystem()
+			originalconfig := Config{}
 
-			err := LoadConfigInGivenFormat(tC.fileFormat)
+			configPassedToLoader := originalconfig
+			err := LoadTOMLFile(fs, tC.filepath, configPassedToLoader)
 
-			assert.Error(err)
-			assert.EqualError(err, fmt.Sprintf("%s is not implemented", tC.fileFormat))
+			assert.EqualError(err, fmt.Sprintf("open %s: file does not exist", tC.filepath))
+			assert.Equal(originalconfig, configPassedToLoader)
 		})
 	}
 }
