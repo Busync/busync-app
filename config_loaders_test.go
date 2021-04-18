@@ -45,6 +45,40 @@ func TestLoaders(t *testing.T) {
 	}
 }
 
+func TestAppConfigIsEmpty(t *testing.T) {
+	testCases := []struct {
+		desc      string
+		appConfig AppConfig
+	}{
+		{
+			desc:      "is empty",
+			appConfig: AppConfig{},
+		},
+		{
+			desc: "is not empty",
+			appConfig: AppConfig{
+				basicAuth: HTTPBasicAuthConfig{
+					username: "foobar",
+					password: "spameggs",
+				},
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			got := AppConfigIsEmpty(tC.appConfig)
+
+			if got {
+				assert.Equal(AppConfig{}, tC.appConfig)
+			} else {
+				assert.NotEqual(AppConfig{}, tC.appConfig)
+			}
+		})
+	}
+}
+
 func TestNoneOfConfigFileFound(t *testing.T) {
 	assert := assert.New(t)
 	fs := NewFileSystem()

@@ -21,7 +21,13 @@ var Loaders = map[string]struct {
 	},
 }
 
-type Config struct{}
+type AppConfig struct {
+	basicAuth HTTPBasicAuthConfig
+}
+
+type Config struct {
+	apps map[string]AppConfig
+}
 
 func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
 	if isDir, err := fs.IsDir(filepath); isDir {
@@ -37,6 +43,10 @@ func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
 
 	err = toml.Unmarshal(data, &v)
 	return err
+}
+
+func AppConfigIsEmpty(appConfig AppConfig) bool {
+	return appConfig == AppConfig{}
 }
 
 func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {
