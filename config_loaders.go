@@ -3,6 +3,7 @@ package busylight_sync
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	toml "github.com/pelletier/go-toml"
 	"github.com/spf13/afero"
@@ -64,6 +65,22 @@ func GetNamesOfEmptyAppConfigs(appConfigs map[string]AppConfig) []string {
 
 	sort.Strings(emptyAppConfigs)
 	return emptyAppConfigs
+}
+
+func ValidateConfig(config Config) error {
+	if NoAppInConfig(config) {
+		return fmt.Errorf("no app in configuration file")
+	}
+
+	emptyAppNames := GetNamesOfEmptyAppConfigs(config.apps)
+	if len(emptyAppNames) == 1 {
+		return fmt.Errorf("%s configuration is empty", emptyAppNames[0])
+	} else if len(emptyAppNames) > 1 {
+		joinedEmptyAppNames := strings.Join(emptyAppNames, ", ")
+		return fmt.Errorf("%s configurations are empty", joinedEmptyAppNames)
+	}
+
+	return nil
 }
 
 func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {

@@ -217,6 +217,97 @@ func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
 	}
 }
 
+func TestValidateConfig(t *testing.T) {
+	testCases := []struct {
+		desc    string
+		config  Config
+		wantErr string
+	}{
+		{
+			desc:    "no app config",
+			config:  Config{},
+			wantErr: "no app in configuration file",
+		},
+		{
+			desc: "one non empty app config",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "foobar",
+							password: "spameggs",
+						},
+					},
+				},
+			},
+		},
+		{
+			desc: "one empty app configs",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{},
+				},
+			},
+			wantErr: "foo configuration is empty",
+		},
+		{
+			desc: "two non empty app configs",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "foobar",
+							password: "spameggs",
+						},
+					},
+					"bar": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "barbaz",
+							password: "hamspam",
+						},
+					},
+				},
+			},
+		},
+		{
+			desc: "two empty app configs",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{},
+					"bar": AppConfig{},
+				},
+			},
+			wantErr: "bar, foo configurations are empty",
+		},
+		{
+			desc: "two app configs with one empty",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "foobar",
+							password: "spameggs",
+						},
+					},
+					"bar": AppConfig{},
+				},
+			},
+			wantErr: "bar configuration is empty",
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			err := ValidateConfig(tC.config)
+
+			if err != nil {
+				assert.EqualError(err, tC.wantErr)
+			}
+		})
+	}
+}
+
 func TestNoneOfConfigFileFound(t *testing.T) {
 	assert := assert.New(t)
 	fs := NewFileSystem()
