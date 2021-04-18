@@ -2,6 +2,7 @@ package busylight_sync
 
 import (
 	"fmt"
+	"sort"
 
 	toml "github.com/pelletier/go-toml"
 	"github.com/spf13/afero"
@@ -45,12 +46,24 @@ func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
 	return err
 }
 
+func NoAppInConfig(config Config) bool {
+	return len(config.apps) == 0
+}
+
 func AppConfigIsEmpty(appConfig AppConfig) bool {
 	return appConfig == AppConfig{}
 }
 
-func NoAppInConfig(config Config) bool {
-	return len(config.apps) == 0
+func GetNamesOfEmptyAppConfigs(appConfigs map[string]AppConfig) []string {
+	emptyAppConfigs := make([]string, 0)
+	for appName, appConfig := range appConfigs {
+		if AppConfigIsEmpty(appConfig) {
+			emptyAppConfigs = append(emptyAppConfigs, appName)
+		}
+	}
+
+	sort.Strings(emptyAppConfigs)
+	return emptyAppConfigs
 }
 
 func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {

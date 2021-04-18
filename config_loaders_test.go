@@ -45,40 +45,6 @@ func TestLoaders(t *testing.T) {
 	}
 }
 
-func TestAppConfigIsEmpty(t *testing.T) {
-	testCases := []struct {
-		desc      string
-		appConfig AppConfig
-	}{
-		{
-			desc:      "is empty",
-			appConfig: AppConfig{},
-		},
-		{
-			desc: "is not empty",
-			appConfig: AppConfig{
-				basicAuth: HTTPBasicAuthConfig{
-					username: "foobar",
-					password: "spameggs",
-				},
-			},
-		},
-	}
-	for _, tC := range testCases {
-		t.Run(tC.desc, func(t *testing.T) {
-			assert := assert.New(t)
-
-			got := AppConfigIsEmpty(tC.appConfig)
-
-			if got {
-				assert.Equal(AppConfig{}, tC.appConfig)
-			} else {
-				assert.NotEqual(AppConfig{}, tC.appConfig)
-			}
-		})
-	}
-}
-
 func TestNoAppInConfig(t *testing.T) {
 	testCases := []struct {
 		desc   string
@@ -132,6 +98,121 @@ func TestNoAppInConfig(t *testing.T) {
 			} else {
 				assert.Less(0, len(tC.config.apps))
 			}
+		})
+	}
+}
+
+func TestAppConfigIsEmpty(t *testing.T) {
+	testCases := []struct {
+		desc      string
+		appConfig AppConfig
+	}{
+		{
+			desc:      "is empty",
+			appConfig: AppConfig{},
+		},
+		{
+			desc: "is not empty",
+			appConfig: AppConfig{
+				basicAuth: HTTPBasicAuthConfig{
+					username: "foobar",
+					password: "spameggs",
+				},
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			got := AppConfigIsEmpty(tC.appConfig)
+
+			if got {
+				assert.Equal(AppConfig{}, tC.appConfig)
+			} else {
+				assert.NotEqual(AppConfig{}, tC.appConfig)
+			}
+		})
+	}
+}
+
+func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
+	testCases := []struct {
+		desc       string
+		appConfigs map[string]AppConfig
+		want       []string
+	}{
+		{
+			desc:       "no app config",
+			appConfigs: make(map[string]AppConfig),
+			want:       []string{},
+		},
+		{
+			desc: "one non empty app config",
+			appConfigs: map[string]AppConfig{
+				"foo": AppConfig{
+					basicAuth: HTTPBasicAuthConfig{
+						username: "foobar",
+						password: "spameggs",
+					},
+				},
+			},
+			want: []string{},
+		},
+		{
+			desc: "one empty app config",
+			appConfigs: map[string]AppConfig{
+				"foo": AppConfig{},
+			},
+			want: []string{"foo"},
+		},
+		{
+			desc: "two non empty app configs",
+			appConfigs: map[string]AppConfig{
+				"foo": AppConfig{
+					basicAuth: HTTPBasicAuthConfig{
+						username: "foobar",
+						password: "spameggs",
+					},
+				},
+				"bar": AppConfig{
+					basicAuth: HTTPBasicAuthConfig{
+						username: "barbaz",
+						password: "hamspam",
+					},
+				},
+			},
+			want: []string{},
+		},
+		{
+			desc: "two empty app configs",
+			appConfigs: map[string]AppConfig{
+				"foo": AppConfig{},
+				"bar": AppConfig{},
+			},
+			want: []string{"bar", "foo"},
+		},
+		{
+			desc: "two app configs with one empty",
+			appConfigs: map[string]AppConfig{
+				"foo": AppConfig{
+					basicAuth: HTTPBasicAuthConfig{
+						username: "foobar",
+						password: "spameggs",
+					},
+				},
+				"bar": AppConfig{},
+			},
+			want: []string{"bar"},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			got := GetNamesOfEmptyAppConfigs(tC.appConfigs)
+
+			assert.Equal(tC.want, got)
 		})
 	}
 }
