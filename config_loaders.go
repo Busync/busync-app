@@ -49,6 +49,10 @@ func AppConfigIsEmpty(appConfig AppConfig) bool {
 	return appConfig == AppConfig{}
 }
 
+func NoAppInConfig(config Config) bool {
+	return len(config.apps) == 0
+}
+
 func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {
 	for _, loader := range Loaders {
 		config := Config{}

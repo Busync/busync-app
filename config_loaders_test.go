@@ -79,6 +79,63 @@ func TestAppConfigIsEmpty(t *testing.T) {
 	}
 }
 
+func TestNoAppInConfig(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		config Config
+	}{
+		{
+			desc:   "no app",
+			config: Config{},
+		},
+		{
+			desc: "one app",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "foobar",
+							password: "spameggs",
+						},
+					},
+				},
+			},
+		},
+		{
+			desc: "two apps",
+			config: Config{
+				apps: map[string]AppConfig{
+					"foo": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "foobar",
+							password: "spameggs",
+						},
+					},
+					"bar": AppConfig{
+						basicAuth: HTTPBasicAuthConfig{
+							username: "barbaz",
+							password: "hamspam",
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			got := NoAppInConfig(tC.config)
+
+			if got {
+				assert.Equal(0, len(tC.config.apps))
+			} else {
+				assert.Less(0, len(tC.config.apps))
+			}
+		})
+	}
+}
+
 func TestNoneOfConfigFileFound(t *testing.T) {
 	assert := assert.New(t)
 	fs := NewFileSystem()
