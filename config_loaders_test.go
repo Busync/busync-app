@@ -13,44 +13,46 @@ func NewFileSystem() afero.Afero {
 }
 
 func TestLoaders(t *testing.T) {
-	var testCases = []struct {
-		desc     string
-		filepath string
-		loader   func(afero.Afero, string, interface{}) error
-	}{
-		{
-			desc:     "toml file",
-			filepath: "/" + TOML_CONFIG_FILE,
-			loader:   LoadTOMLFile,
-		},
-	}
-	for _, tC := range testCases {
-		t.Run(tC.desc+"/file_not_found", func(t *testing.T) {
+	for loaderType, tC := range Loaders {
+		filepath := "/" + tC.filename
+		originalconfig := Config{}
+
+		t.Run(loaderType+"/file_not_found", func(t *testing.T) {
 			assert := assert.New(t)
 			fs := NewFileSystem()
-			originalconfig := Config{}
 
 			configPassedToLoader := originalconfig
-			err := LoadTOMLFile(fs, tC.filepath, configPassedToLoader)
+			err := LoadTOMLFile(fs, filepath, configPassedToLoader)
 
-			assert.EqualError(err, fmt.Sprintf("open %s: file does not exist", tC.filepath))
+			assert.EqualError(err, fmt.Sprintf("open %s: file does not exist", filepath))
 			assert.Equal(originalconfig, configPassedToLoader)
 		})
 
-		t.Run(tC.desc+"/is_a_dir", func(t *testing.T) {
+		t.Run(loaderType+"/is_a_dir", func(t *testing.T) {
 			assert := assert.New(t)
 			fs := NewFileSystem()
-			originalconfig := Config{}
-			err := fs.Mkdir(tC.filepath, 0777)
+			err := fs.Mkdir(filepath, 0777)
 			if err != nil {
 				panic(err)
 			}
 
 			configPassedToLoader := originalconfig
-			err = LoadTOMLFile(fs, tC.filepath, configPassedToLoader)
+			err = LoadTOMLFile(fs, filepath, configPassedToLoader)
 
-			assert.EqualError(err, fmt.Sprintf("%s is a directory", tC.filepath))
+			assert.EqualError(err, fmt.Sprintf("%s is a directory", filepath))
 			assert.Equal(originalconfig, configPassedToLoader)
 		})
 	}
+}
+
+func TestNoneOfConfigFileFound(t *testing.T) {
+	assert := assert.New(t)
+	fs := NewFileSystem()
+	configDir := "/"
+	want := Config{}
+
+	got, err := LoadConfigFileFromDir(fs, configDir)
+
+	assert.EqualError(err, "no configuration file was found")
+	assert.Equal(want, got)
 }

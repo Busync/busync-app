@@ -11,6 +11,16 @@ const (
 	TOML_CONFIG_FILE string = ".busylight-sync.toml"
 )
 
+var Loaders = map[string]struct {
+	filename string
+	load     func(afero.Afero, string, interface{}) error
+}{
+	"toml": {
+		filename: TOML_CONFIG_FILE,
+		load:     LoadTOMLFile,
+	},
+}
+
 type Config struct{}
 
 func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
@@ -27,4 +37,17 @@ func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
 
 	err = toml.Unmarshal(data, &v)
 	return err
+}
+
+func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {
+	for _, loader := range Loaders {
+		config := Config{}
+		filepath := configDir + loader.filename
+
+		if err := loader.load(fs, filepath, config); err == nil {
+			return config, nil
+		}
+	}
+
+	return Config{}, fmt.Errorf("no configuration file was found")
 }
