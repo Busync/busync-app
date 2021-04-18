@@ -36,5 +36,21 @@ func TestLoaders(t *testing.T) {
 			assert.EqualError(err, fmt.Sprintf("open %s: file does not exist", tC.filepath))
 			assert.Equal(originalconfig, configPassedToLoader)
 		})
+
+		t.Run(tC.desc+"/is_a_dir", func(t *testing.T) {
+			assert := assert.New(t)
+			fs := NewFileSystem()
+			originalconfig := Config{}
+			err := fs.Mkdir(tC.filepath, 0777)
+			if err != nil {
+				panic(err)
+			}
+
+			configPassedToLoader := originalconfig
+			err = LoadTOMLFile(fs, tC.filepath, configPassedToLoader)
+
+			assert.EqualError(err, fmt.Sprintf("%s is a directory", tC.filepath))
+			assert.Equal(originalconfig, configPassedToLoader)
+		})
 	}
 }
