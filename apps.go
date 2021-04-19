@@ -51,3 +51,21 @@ func (f FakeApp) isBusy() (bool, error) {
 
 	return f.getBusyStateFromJSONResponse(jsonResponse), nil
 }
+
+type TogglJSONResponse struct {
+	data struct {
+		id int
+	}
+}
+
+type Toggl struct {
+	client *http.Client
+}
+
+func (Toggl) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
+	return jsonResponse.(TogglJSONResponse).data.id != 0
+}
+
+func (t Toggl) isBusy() (bool, error) {
+	return false, nil
+}

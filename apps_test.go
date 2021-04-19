@@ -22,7 +22,7 @@ func TestNotImplementedApp(t *testing.T) {
 	assert.EqualError(err, fmt.Sprintf("%s is not implemented", appName))
 }
 
-func TestAppsGetBusyStateFromJSONResponse(t *testing.T) {
+func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 	httpClient := &http.Client{}
 
 	testCases := map[app][]struct {
@@ -39,6 +39,18 @@ func TestAppsGetBusyStateFromJSONResponse(t *testing.T) {
 			{
 				desc:         "is not busy",
 				jsonResponse: FakeAppJSONResponse{IsBusy: false},
+				want:         false,
+			},
+		},
+		Toggl{httpClient}: {
+			{
+				desc:         "is busy",
+				jsonResponse: TogglJSONResponse{data: struct{ id int }{1}},
+				want:         true,
+			},
+			{
+				desc:         "is not busy",
+				jsonResponse: TogglJSONResponse{data: struct{ id int }{0}},
 				want:         false,
 			},
 		},
