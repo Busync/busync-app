@@ -74,17 +74,28 @@ func mockHTTPRequestWithBasicAuth(mockedRequest *gock.Request, authConfig HTTPBa
 	)
 }
 
-func GetFakeAppMockedRequest(httpClientType string, authConfig interface{}) *gock.Request {
-	mockedRequest := gock.New(FAKEAPP_API_URL).
-		Get(FAKEAPP_PATH)
+func GetAPIMockedRequestForGivenApp(appName string) *gock.Request {
+	var url, path string
+	switch appName {
+	case "fake":
+		url = FAKEAPP_API_URL
+		path = FAKEAPP_API_PATH
+	default:
+		panic(fmt.Sprintf("%s app mock api not implemented", appName))
+	}
 
+	return gock.New(url).
+		Get(path)
+}
+
+func MockRequestWithGivenAuth(req *gock.Request, httpClientType string, authConfig interface{}) *gock.Request {
 	switch httpClientType {
 	case "no-auth":
-		return mockedRequest
+		return req
 	case "basic-auth":
-		return mockHTTPRequestWithBasicAuth(mockedRequest, authConfig.(HTTPBasicAuthConfig))
+		return mockHTTPRequestWithBasicAuth(req, authConfig.(HTTPBasicAuthConfig))
 	default:
-		panic(fmt.Sprintf("%s http client not implemented", httpClientType))
+		panic(fmt.Sprintf("%s mock http client not implemented", httpClientType))
 	}
 }
 
@@ -93,15 +104,18 @@ func GetFakeAppMockedJSONMapResponse(isBusy bool) map[string]interface{} {
 	return structs.Map(mockedJSONResponse)
 }
 
+func MockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]interface{} {
+	switch appName {
+	case "fake":
+		return GetFakeAppMockedJSONMapResponse(isBusy)
+	default:
+		panic(fmt.Sprintf("%s app mock json map response not implemented", appName))
+	}
+}
+
 func TestAppsIsBusy(t *testing.T) {
-	apps := map[string]struct {
-		getMockedRequest         func(string, interface{}) *gock.Request
-		getMockedJSONMapResponse func(bool) map[string]interface{}
-	}{
-		"fake": {
-			getMockedRequest:         GetFakeAppMockedRequest,
-			getMockedJSONMapResponse: GetFakeAppMockedJSONMapResponse,
-		},
+	apps := []string{
+		"fake",
 	}
 
 	testCases := []struct {
@@ -140,14 +154,19 @@ func TestAppsIsBusy(t *testing.T) {
 			statusCode:     200,
 		},
 	}
-	for appName, utils := range apps {
+	for _, appName := range apps {
 		for _, tC := range testCases {
 			t.Run(appName+"/"+tC.desc, func(t *testing.T) {
 				assert := assert.New(t)
-				jsonMap := utils.getMockedJSONMapResponse(tC.isBusy)
+				jsonMap := MockJSONMapResponseForGivenApp(appName, tC.isBusy)
 
 				defer gock.Off()
-				mockedRequest := utils.getMockedRequest(tC.httpClientType, tC.authConfig)
+				mockedRequest := GetAPIMockedRequestForGivenApp(appName)
+				mockedRequest = MockRequestWithGivenAuth(
+					mockedRequest,
+					tC.httpClientType,
+					tC.authConfig,
+				)
 				mockedRequest.Reply(tC.statusCode).
 					JSON(jsonMap)
 
