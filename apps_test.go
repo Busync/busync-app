@@ -44,14 +44,18 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 		},
 		Toggl{httpClient}: {
 			{
-				desc:         "is busy",
-				jsonResponse: TogglJSONResponse{data: struct{ id int }{1}},
-				want:         true,
+				desc: "is busy",
+				jsonResponse: TogglJSONResponse{Data: struct {
+					Id int `json:"id"`
+				}{1}},
+				want: true,
 			},
 			{
-				desc:         "is not busy",
-				jsonResponse: TogglJSONResponse{data: struct{ id int }{0}},
-				want:         false,
+				desc: "is not busy",
+				jsonResponse: TogglJSONResponse{Data: struct {
+					Id int `json:"id"`
+				}{0}},
+				want: false,
 			},
 		},
 	}
@@ -80,6 +84,9 @@ func GetAPIMockedRequestForGivenApp(appName string) *gock.Request {
 	case "fake":
 		url = FAKEAPP_API_URL
 		path = FAKEAPP_API_PATH
+	case "toggl":
+		url = TOGGL_API_URL
+		path = TOGGL_API_PATH
 	default:
 		panic(fmt.Sprintf("%s app mock api not implemented", appName))
 	}
@@ -104,10 +111,26 @@ func GetFakeAppMockedJSONMapResponse(isBusy bool) map[string]interface{} {
 	return structs.Map(mockedJSONResponse)
 }
 
+func GetTogglMockedJSONMapResponse(isBusy bool) map[string]interface{} {
+	var id int
+	if isBusy {
+		id = 12345
+	} else {
+		id = 0
+	}
+
+	mockedJSONResponse := TogglJSONResponse{Data: struct {
+		Id int `json:"id"`
+	}{Id: id}}
+	return structs.Map(mockedJSONResponse)
+}
+
 func MockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]interface{} {
 	switch appName {
 	case "fake":
 		return GetFakeAppMockedJSONMapResponse(isBusy)
+	case "toggl":
+		return GetTogglMockedJSONMapResponse(isBusy)
 	default:
 		panic(fmt.Sprintf("%s app mock json map response not implemented", appName))
 	}
@@ -116,6 +139,7 @@ func MockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]inte
 func TestAppsIsBusy(t *testing.T) {
 	apps := []string{
 		"fake",
+		"toggl",
 	}
 
 	testCases := []struct {
