@@ -2,6 +2,7 @@ package busylight_sync
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/fatih/structs"
@@ -21,6 +22,39 @@ func TestNotImplementedApp(t *testing.T) {
 	assert.EqualError(err, fmt.Sprintf("%s is not implemented", appName))
 }
 
+func TestAppsGetBusyStateFromJSONResponse(t *testing.T) {
+	httpClient := &http.Client{}
+
+	testCases := map[app][]struct {
+		desc         string
+		jsonResponse interface{}
+		want         bool
+	}{
+		FakeApp{httpClient}: {
+			{
+				desc:         "is busy",
+				jsonResponse: FakeAppJSONResponse{IsBusy: true},
+				want:         true,
+			},
+			{
+				desc:         "is not busy",
+				jsonResponse: FakeAppJSONResponse{IsBusy: false},
+				want:         false,
+			},
+		},
+	}
+	for sut, tCs := range testCases {
+		appName := GetStructName(sut)
+		for _, tC := range tCs {
+			t.Run(fmt.Sprintf("%s/%s", appName, tC.desc), func(t *testing.T) {
+				assert := assert.New(t)
+
+				got := sut.getBusyStateFromJSONResponse(tC.jsonResponse)
+				assert.Equal(tC.want, got)
+			})
+		}
+	}
+}
 func mockHTTPRequestWithBasicAuth(mockedRequest *gock.Request, authConfig HTTPBasicAuthConfig) *gock.Request {
 	return mockedRequest.MatchHeader(
 		"Authorization",
@@ -47,7 +81,7 @@ func GetFakeAppMockedJSONMapResponse(isBusy bool) map[string]interface{} {
 	return structs.Map(mockedJSONResponse)
 }
 
-func TestApps(t *testing.T) {
+func TestAppsIsBusy(t *testing.T) {
 	apps := map[string]struct {
 		getMockedRequest         func(string, interface{}) *gock.Request
 		getMockedJSONMapResponse func(bool) map[string]interface{}
