@@ -24,7 +24,7 @@ func TestFakeDeviceSetStaticColor(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 
-			sut := FakeDevice{}
+			sut := FakeBusyLight{}
 			sut.SetStaticColor(tC.color)
 
 			assert.Equal(tC.color, sut.color)
@@ -49,7 +49,7 @@ func TestFakeDeviceOff(t *testing.T) {
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
-			sut := FakeDevice{}
+			sut := FakeBusyLight{}
 			sut.SetStaticColor(tC.previousRGBColor)
 
 			sut.Off()
@@ -58,3 +58,4 @@ func TestFakeDeviceOff(t *testing.T) {
 		})
 	}
 }
+
