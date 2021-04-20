@@ -1,6 +1,7 @@
 package busylight_sync
 
 import (
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
@@ -69,7 +70,7 @@ func GetNamesOfEmptyAppConfigs(appConfigs map[string]AppConfig) []string {
 
 func ValidateConfig(config Config) error {
 	if NoAppInConfig(config) {
-		return fmt.Errorf("no app in configuration file")
+		return errors.New("no app in configuration file")
 	}
 
 	emptyAppNames := GetNamesOfEmptyAppConfigs(config.apps)
@@ -93,5 +94,5 @@ func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {
 		}
 	}
 
-	return Config{}, fmt.Errorf("no configuration file was found")
+	return Config{}, errors.New("no configuration file was found")
 }
