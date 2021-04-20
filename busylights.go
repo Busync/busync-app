@@ -1,8 +1,6 @@
 package busylight_sync
 
 import (
-	"fmt"
-
 	"github.com/google/gousb"
 )
 
