@@ -7,6 +7,7 @@ import (
 const (
 	LUXAFOR_FLAG_VENDOR_ID  gousb.ID = 0x04d8
 	LUXAFOR_FLAG_PRODUCT_ID gousb.ID = 0xf372
+	LUXAFOR_FLAG_ALL_LED    byte     = 0xff
 )
 
 var (
@@ -44,3 +45,11 @@ func NewLuxaforFlag() (*LuxaforFlag, error) {
 		device: dev,
 	}, nil
 }
+
+func (l LuxaforFlag) SetStaticColor(color RGBColor) error {
+	data := []byte{0x01, LUXAFOR_FLAG_ALL_LED, color.red, color.green, color.blue, 0, 0x0, 0x0}
+
+	err := l.device.WriteCommand(data)
+	return err
+}
+
