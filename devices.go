@@ -43,3 +43,10 @@ func NewUSBDevice(vendorID, productID gousb.ID) (*USBDevice, error) {
 		closer:      closer,
 	}, nil
 }
+
+func (u USBDevice) Close() error {
+	u.closer()
+	err := u.context.Close()
+
+	return err
+}
