@@ -312,10 +312,9 @@ func TestNoneOfConfigFileFound(t *testing.T) {
 	assert := assert.New(t)
 	fs := NewFileSystem()
 	configDir := "/"
-	want := Config{}
 
 	got, err := LoadConfigFileFromDir(fs, configDir)
 
 	assert.EqualError(err, "no configuration file was found")
-	assert.Equal(want, got)
+	assert.Nil(got)
 }

@@ -84,15 +84,15 @@ func ValidateConfig(config Config) error {
 	return nil
 }
 
-func LoadConfigFileFromDir(fs afero.Afero, configDir string) (Config, error) {
+func LoadConfigFileFromDir(fs afero.Afero, configDir string) (*Config, error) {
 	for _, loader := range Loaders {
 		config := Config{}
 		filepath := configDir + loader.filename
 
 		if err := loader.load(fs, filepath, config); err == nil {
-			return config, nil
+			return &config, nil
 		}
 	}
 
-	return Config{}, errors.New("no configuration file was found")
+	return nil, errors.New("no configuration file was found")
 }
