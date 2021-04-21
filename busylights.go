@@ -29,3 +29,18 @@ func (f *FakeBusyLight) SetStaticColor(color RGBColor) {
 func (f *FakeBusyLight) Off() {
 	f.color = OffColor
 }
+
+type LuxaforFlag struct {
+	device *USBDevice
+}
+
+func NewLuxaforFlag() (*LuxaforFlag, error) {
+	dev, err := NewUSBDevice(LUXAFOR_FLAG_VENDOR_ID, LUXAFOR_FLAG_PRODUCT_ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &LuxaforFlag{
+		device: dev,
+	}, nil
+}
