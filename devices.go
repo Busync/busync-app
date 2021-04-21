@@ -50,3 +50,9 @@ func (u USBDevice) Close() error {
 
 	return err
 }
+
+func (u *USBDevice) WriteCommand(command []byte) error {
+	_, err := u.outEndpoint.Write(command)
+
+	return err
+}
