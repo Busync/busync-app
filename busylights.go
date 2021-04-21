@@ -53,3 +53,6 @@ func (l LuxaforFlag) SetStaticColor(color RGBColor) error {
 	return err
 }
 
+func (l *LuxaforFlag) Off() {
+	l.SetStaticColor(OffColor)
+}
