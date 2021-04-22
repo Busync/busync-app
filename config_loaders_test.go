@@ -180,19 +180,19 @@ func TestAppConfigIsEmpty(t *testing.T) {
 	}
 }
 
-func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
+func TestGetNameOfAppsWithMissingAuth(t *testing.T) {
 	testCases := []struct {
 		desc       string
 		appConfigs map[string]AppConfig
 		want       []string
 	}{
 		{
-			desc:       "no app config",
+			desc:       "no apps",
 			appConfigs: make(map[string]AppConfig),
 			want:       []string{},
 		},
 		{
-			desc: "one non empty app config",
+			desc: "one app config with auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{
 					basicAuth: HTTPBasicAuthConfig{
@@ -204,14 +204,14 @@ func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
 			want: []string{},
 		},
 		{
-			desc: "one empty app config",
+			desc: "one app config with missing auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{},
 			},
 			want: []string{"foo"},
 		},
 		{
-			desc: "two non empty app configs",
+			desc: "two app configs with auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{
 					basicAuth: HTTPBasicAuthConfig{
@@ -229,7 +229,7 @@ func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
 			want: []string{},
 		},
 		{
-			desc: "two empty app configs",
+			desc: "two app configs with missing auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{},
 				"bar": AppConfig{},
@@ -237,7 +237,7 @@ func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
 			want: []string{"bar", "foo"},
 		},
 		{
-			desc: "two app configs with one empty",
+			desc: "two app configs with one missing auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{
 					basicAuth: HTTPBasicAuthConfig{
@@ -254,7 +254,7 @@ func TestGetNamesOfEmptyAppConfigs(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 
-			got := GetNamesOfEmptyAppConfigs(tC.appConfigs)
+			got := GetNameOfAppsWithMissingAuth(tC.appConfigs)
 
 			assert.Equal(tC.want, got)
 		})
@@ -273,7 +273,7 @@ func TestValidateConfig(t *testing.T) {
 			wantErr: "no app in configuration file",
 		},
 		{
-			desc: "one non empty app config",
+			desc: "one app config with auth",
 			config: Config{
 				apps: map[string]AppConfig{
 					"foo": AppConfig{
@@ -286,16 +286,16 @@ func TestValidateConfig(t *testing.T) {
 			},
 		},
 		{
-			desc: "one empty app configs",
+			desc: "one app config with missing auth",
 			config: Config{
 				apps: map[string]AppConfig{
 					"foo": AppConfig{},
 				},
 			},
-			wantErr: "foo configuration is empty",
+			wantErr: "foo has no authentication provided",
 		},
 		{
-			desc: "two non empty app configs",
+			desc: "two app configs with auth",
 			config: Config{
 				apps: map[string]AppConfig{
 					"foo": AppConfig{
@@ -314,17 +314,17 @@ func TestValidateConfig(t *testing.T) {
 			},
 		},
 		{
-			desc: "two empty app configs",
+			desc: "two app configs with missing auth",
 			config: Config{
 				apps: map[string]AppConfig{
 					"foo": AppConfig{},
 					"bar": AppConfig{},
 				},
 			},
-			wantErr: "bar, foo configurations are empty",
+			wantErr: "bar, foo has no authentication provided",
 		},
 		{
-			desc: "two app configs with one empty",
+			desc: "two app configs with one missing auth",
 			config: Config{
 				apps: map[string]AppConfig{
 					"foo": AppConfig{
@@ -336,7 +336,7 @@ func TestValidateConfig(t *testing.T) {
 					"bar": AppConfig{},
 				},
 			},
-			wantErr: "bar configuration is empty",
+			wantErr: "bar has no authentication provided",
 		},
 	}
 	for _, tC := range testCases {

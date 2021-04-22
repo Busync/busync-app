@@ -56,16 +56,16 @@ func AppConfigIsEmpty(appConfig AppConfig) bool {
 	return appConfig == AppConfig{}
 }
 
-func GetNamesOfEmptyAppConfigs(appConfigs map[string]AppConfig) []string {
-	emptyAppConfigs := make([]string, 0)
+func GetNameOfAppsWithMissingAuth(appConfigs map[string]AppConfig) []string {
+	appNamesWithMissingAuth := make([]string, 0)
 	for appName, appConfig := range appConfigs {
 		if AppConfigIsEmpty(appConfig) {
-			emptyAppConfigs = append(emptyAppConfigs, appName)
+			appNamesWithMissingAuth = append(appNamesWithMissingAuth, appName)
 		}
 	}
 
-	sort.Strings(emptyAppConfigs)
-	return emptyAppConfigs
+	sort.Strings(appNamesWithMissingAuth)
+	return appNamesWithMissingAuth
 }
 
 func ValidateConfig(config Config) error {
@@ -73,12 +73,10 @@ func ValidateConfig(config Config) error {
 		return errors.New("no app in configuration file")
 	}
 
-	emptyAppNames := GetNamesOfEmptyAppConfigs(config.apps)
-	if len(emptyAppNames) == 1 {
-		return fmt.Errorf("%s configuration is empty", emptyAppNames[0])
-	} else if len(emptyAppNames) > 1 {
-		joinedEmptyAppNames := strings.Join(emptyAppNames, ", ")
-		return fmt.Errorf("%s configurations are empty", joinedEmptyAppNames)
+	appNamesWithMissingAuth := GetNameOfAppsWithMissingAuth(config.apps)
+	if len(appNamesWithMissingAuth) > 0 {
+		joinedAppNamesWithMissingAuth := strings.Join(appNamesWithMissingAuth, ", ")
+		return fmt.Errorf("%s has no authentication provided", joinedAppNamesWithMissingAuth)
 	}
 
 	return nil
