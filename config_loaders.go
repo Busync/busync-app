@@ -14,7 +14,7 @@ const (
 	TOML_CONFIG_FILE string = ".busylight-sync.toml"
 )
 
-var Loaders = map[string]struct {
+var ConfigFileFormats = map[string]struct {
 	filename string
 	load     func(afero.Afero, string, interface{}) error
 }{
@@ -84,15 +84,33 @@ func ValidateConfig(config Config) error {
 	return nil
 }
 
-func LoadConfigFileFromDir(fs afero.Afero, configDir string) (*Config, error) {
-	for _, loader := range Loaders {
-		config := Config{}
-		filepath := configDir + loader.filename
+func GetConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, func(afero.Afero, string, interface{}) error, error) {
+	for _, configFileFormat := range ConfigFileFormats {
+		filepath := configDir + configFileFormat.filename
 
-		if err := loader.load(fs, filepath, config); err == nil {
-			return &config, nil
+		fileExists, err := fs.Exists(filepath)
+		if err != nil {
+			return "", nil, err
+		} else if fileExists {
+			return filepath, configFileFormat.load, nil
 		}
 	}
 
-	return nil, errors.New("no configuration file was found")
+	return "", nil, errors.New("no configuration file was found")
+}
+
+func LoadConfigFileFromDir(fs afero.Afero, configDir string) (*Config, error) {
+	filepath, load, err := GetConfigFilePathAndItsLoader(fs, configDir)
+	if err != nil {
+		return nil, err
+	}
+
+	config := Config{}
+	err = load(fs, filepath, config)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ValidateConfig(config)
+	return &config, err
 }

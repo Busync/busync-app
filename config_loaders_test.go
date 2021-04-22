@@ -12,12 +12,12 @@ func NewFileSystem() afero.Afero {
 	return afero.Afero{Fs: afero.NewMemMapFs()}
 }
 
-func TestLoaders(t *testing.T) {
-	for loaderType, tC := range Loaders {
+func TestConfigFileFormats(t *testing.T) {
+	for configFileFormat, tC := range ConfigFileFormats {
 		filepath := "/" + tC.filename
 		originalconfig := Config{}
 
-		t.Run(loaderType+"/file_not_found", func(t *testing.T) {
+		t.Run(configFileFormat+"/file_not_found", func(t *testing.T) {
 			assert := assert.New(t)
 			fs := NewFileSystem()
 
@@ -28,7 +28,7 @@ func TestLoaders(t *testing.T) {
 			assert.Equal(originalconfig, configPassedToLoader)
 		})
 
-		t.Run(loaderType+"/is_a_dir", func(t *testing.T) {
+		t.Run(configFileFormat+"/is_a_dir", func(t *testing.T) {
 			assert := assert.New(t)
 			fs := NewFileSystem()
 			err := fs.Mkdir(filepath, 0777)
@@ -41,6 +41,50 @@ func TestLoaders(t *testing.T) {
 
 			assert.EqualError(err, fmt.Sprintf("%s is a directory", filepath))
 			assert.Equal(originalconfig, configPassedToLoader)
+		})
+	}
+}
+
+func TestGetConfigFilePathAndItsLoader(t *testing.T) {
+	configDir := "/"
+
+	testCases := []struct {
+		desc         string
+		filepath     string
+		fileContent  string
+		wantFilepath string
+		wantLoad     func(afero.Afero, string, interface{}) error
+		wantErr      string
+	}{
+		{
+			desc:    "no configuration file found",
+			wantErr: "no configuration file was found",
+		},
+		{
+			desc:         "toml configuration found",
+			wantFilepath: configDir + TOML_CONFIG_FILE,
+			wantLoad:     LoadTOMLFile,
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+			fs := NewFileSystem()
+			wantLoadFuncName := GetFuncName(tC.wantLoad)
+
+			if tC.wantFilepath != "" {
+				fs.WriteFile(tC.wantFilepath, []byte(tC.fileContent), 0755)
+			}
+
+			gotFilepath, gotLoad, err := GetConfigFilePathAndItsLoader(fs, configDir)
+			gotLoadFuncName := GetFuncName(gotLoad)
+
+			if err != nil {
+				assert.EqualError(err, tC.wantErr)
+			}
+
+			assert.Equal(tC.wantFilepath, gotFilepath)
+			assert.Equal(wantLoadFuncName, gotLoadFuncName)
 		})
 	}
 }
@@ -308,7 +352,7 @@ func TestValidateConfig(t *testing.T) {
 	}
 }
 
-func TestNoneOfConfigFileFound(t *testing.T) {
+func TestLoadConfigFileFromDir(t *testing.T) {
 	assert := assert.New(t)
 	fs := NewFileSystem()
 	configDir := "/"
