@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/fatih/structs"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
 )
@@ -70,97 +69,6 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 			})
 		}
 	}
-}
-func mockHTTPRequestWithBasicAuth(mockedRequest *gock.Request, authConfig HTTPBasicAuthConfig) *gock.Request {
-	return mockedRequest.MatchHeader(
-		"Authorization",
-		"Basic "+basicAuth(authConfig.Username, authConfig.Password),
-	)
-}
-
-func GetAPIMockedRequestForGivenApp(appName string) *gock.Request {
-	var url, path string
-	switch appName {
-	case "fake":
-		url = FAKEAPP_API_URL
-		path = FAKEAPP_API_PATH
-	case "toggl":
-		url = TOGGL_API_URL
-		path = TOGGL_API_PATH
-	default:
-		panic(fmt.Sprintf("%s app mock api not implemented", appName))
-	}
-
-	return gock.New(url).
-		Get(path)
-}
-
-func MockRequestWithGivenAuth(req *gock.Request, httpClientType string, authConfig interface{}) *gock.Request {
-	switch httpClientType {
-	case "no-auth":
-		return req
-	case "basic-auth":
-		return mockHTTPRequestWithBasicAuth(req, authConfig.(HTTPBasicAuthConfig))
-	default:
-		panic(fmt.Sprintf("%s mock http client not implemented", httpClientType))
-	}
-}
-
-func GetFakeAppMockedJSONMapResponse(isBusy bool) map[string]interface{} {
-	mockedJSONResponse := FakeAppJSONResponse{IsBusy: isBusy}
-	return structs.Map(mockedJSONResponse)
-}
-
-func GetTogglMockedJSONMapResponse(isBusy bool) map[string]interface{} {
-	var id int
-	if isBusy {
-		id = 12345
-	} else {
-		id = 0
-	}
-
-	mockedJSONResponse := TogglJSONResponse{Data: struct {
-		Id int `json:"id"`
-	}{Id: id}}
-	return structs.Map(mockedJSONResponse)
-}
-
-func MockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]interface{} {
-	switch appName {
-	case "fake":
-		return GetFakeAppMockedJSONMapResponse(isBusy)
-	case "toggl":
-		return GetTogglMockedJSONMapResponse(isBusy)
-	default:
-		panic(fmt.Sprintf("%s app mock json map response not implemented", appName))
-	}
-}
-
-type appMockConfig struct {
-	httpClientType string
-	authConfig     interface{}
-	isBusy         bool
-	statusCode     int
-}
-
-func GetMockedApp(appName string, mockConfig appMockConfig) (app, error) {
-	jsonMap := MockJSONMapResponseForGivenApp(appName, mockConfig.isBusy)
-
-	mockedRequest := GetAPIMockedRequestForGivenApp(appName)
-	mockedRequest = MockRequestWithGivenAuth(
-		mockedRequest,
-		mockConfig.httpClientType,
-		mockConfig.authConfig,
-	)
-	mockedRequest.Reply(mockConfig.statusCode).
-		JSON(jsonMap)
-
-	httpClient, err := NewHTTPClient(mockConfig.httpClientType, mockConfig.authConfig)
-	if err != nil {
-		panic(err)
-	}
-
-	return NewApp(appName, httpClient)
 }
 
 func TestAppsIsBusy(t *testing.T) {
