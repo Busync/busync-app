@@ -7,6 +7,16 @@ import (
 	"strings"
 )
 
+func GetSliceOfStructNames(givenSlice []interface{}) []string {
+	sliceOfStructNames := make([]string, 0)
+	for _, element := range givenSlice {
+		structName := GetStructName(element)
+		sliceOfStructNames = append(sliceOfStructNames, structName)
+	}
+
+	return sliceOfStructNames
+}
+
 func GetStructName(s interface{}) string {
 	completeStructname := fmt.Sprintf("%T", s)
 	splittedStructName := strings.Split(completeStructname, ".")
