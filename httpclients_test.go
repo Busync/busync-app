@@ -15,6 +15,35 @@ func basicAuth(username, password string) string {
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 
+func TestHTTPAuthConfigIsEmptyMethod(t *testing.T) {
+	testCases := []struct {
+		desc       string
+		authConfig HTTPAuthConfig
+		want       bool
+	}{
+		{
+			desc:       "basic auth is empty",
+			authConfig: HTTPBasicAuthConfig{},
+			want:       false,
+		},
+		{
+			desc: "basic auth is not empty",
+			authConfig: HTTPBasicAuthConfig{
+				Username: "foobar",
+				Password: "spameggs",
+			},
+			want: true,
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			assert.Equal(tC.want, tC.authConfig.isNotEmpty())
+		})
+	}
+}
+
 func TestHTTPClientNotImplemented(t *testing.T) {
 	assert := assert.New(t)
 	authType := "foobar"

@@ -5,9 +5,17 @@ import (
 	"net/http"
 )
 
+type HTTPAuthConfig interface {
+	isNotEmpty() bool
+}
+
 type HTTPBasicAuthConfig struct {
 	Username string `toml:"username"`
 	Password string `toml:"password"`
+}
+
+func (b HTTPBasicAuthConfig) isNotEmpty() bool {
+	return b != HTTPBasicAuthConfig{}
 }
 
 type HTTPBasicAuthRoundTripper struct {
