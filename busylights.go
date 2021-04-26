@@ -15,7 +15,7 @@ var (
 )
 
 type BusyLight interface {
-	SetStaticColor(color RGBColor)
+	SetStaticColor(RGBColor) error
 	Off()
 }
 
@@ -23,19 +23,21 @@ type FakeBusyLight struct {
 	color RGBColor
 }
 
-func (f *FakeBusyLight) SetStaticColor(color RGBColor) {
+func (f *FakeBusyLight) SetStaticColor(color RGBColor) error {
 	f.color = color
+
+	return nil
 }
 
 func (f *FakeBusyLight) Off() {
-	f.color = OffColor
+	f.SetStaticColor(OffColor)
 }
 
 type LuxaforFlag struct {
 	device *USBDevice
 }
 
-func NewLuxaforFlag() (*LuxaforFlag, error) {
+func NewLuxaforFlag() (BusyLight, error) {
 	dev, err := NewUSBDevice(LUXAFOR_FLAG_VENDOR_ID, LUXAFOR_FLAG_PRODUCT_ID)
 	if err != nil {
 		return nil, err
@@ -46,7 +48,7 @@ func NewLuxaforFlag() (*LuxaforFlag, error) {
 	}, nil
 }
 
-func (l LuxaforFlag) SetStaticColor(color RGBColor) error {
+func (l *LuxaforFlag) SetStaticColor(color RGBColor) error {
 	data := []byte{0x01, LUXAFOR_FLAG_ALL_LED, color.red, color.green, color.blue, 0, 0x0, 0x0}
 
 	err := l.device.WriteCommand(data)
