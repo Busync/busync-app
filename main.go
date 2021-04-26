@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -42,4 +43,18 @@ func getAppsFromGivenConfig(config *Config) ([]app, error) {
 	} else {
 		return apps, nil
 	}
+}
+
+func AnyOfGivenAppIsBusy(apps []app) bool {
+	for _, app := range apps {
+		isBusy, err := app.isBusy()
+		if err != nil {
+			log.Println(err)
+		}
+		if isBusy {
+			return true
+		}
+	}
+
+	return false
 }
