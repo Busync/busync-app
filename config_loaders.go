@@ -16,11 +16,11 @@ const (
 
 var ConfigFileFormats = map[string]struct {
 	filename string
-	load     func(afero.Afero, string, interface{}) error
+	load     func(afero.Afero, string) (*Config, error)
 }{
 	"toml": {
 		filename: TOML_CONFIG_FILE,
-		load:     LoadTOMLFile,
+		load:     LoadConfigFromTOMLFile,
 	},
 }
 
@@ -34,22 +34,24 @@ type Config struct {
 	Apps `toml:"apps"`
 }
 
-func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
+func LoadConfigFromTOMLFile(fs afero.Afero, filepath string) (*Config, error) {
 	if isDir, err := fs.IsDir(filepath); isDir {
-		return fmt.Errorf("%s is a directory", filepath)
+		return nil, fmt.Errorf("%s is a directory", filepath)
 	} else if err != nil {
-		return err
+		return nil, err
 	}
 
 	data, err := fs.ReadFile(filepath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = toml.Unmarshal(data, &v)
-	return err
+	var config Config
+	err = toml.Unmarshal(data, &config)
+	return &config, err
 }
 
+func NoAppInConfig(config *Config) bool {
 	return len(config.Apps) == 0
 }
 
@@ -69,12 +71,12 @@ func GetNameOfAppsWithMissingAuth(appConfigs map[string]AppConfig) []string {
 	return appNamesWithMissingAuth
 }
 
-func ValidateConfig(config Config) error {
+func ValidateConfig(config *Config) error {
 	if NoAppInConfig(config) {
 		return errors.New("no app in configuration file")
 	}
 
-	appNamesWithMissingAuth := GetNameOfAppsWithMissingAuth(config.apps)
+	appNamesWithMissingAuth := GetNameOfAppsWithMissingAuth(config.Apps)
 	if len(appNamesWithMissingAuth) > 0 {
 		joinedAppNamesWithMissingAuth := strings.Join(appNamesWithMissingAuth, ", ")
 		return fmt.Errorf("%s has no authentication provided", joinedAppNamesWithMissingAuth)
@@ -83,7 +85,7 @@ func ValidateConfig(config Config) error {
 	return nil
 }
 
-func GetConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, func(afero.Afero, string, interface{}) error, error) {
+func GetConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, func(afero.Afero, string) (*Config, error), error) {
 	for _, configFileFormat := range ConfigFileFormats {
 		filepath := configDir + configFileFormat.filename
 
@@ -104,12 +106,15 @@ func LoadConfigFileFromDir(fs afero.Afero, configDir string) (*Config, error) {
 		return nil, err
 	}
 
-	config := Config{}
-	err = load(fs, filepath, config)
+	config, err := load(fs, filepath)
 	if err != nil {
 		return nil, err
 	}
 
 	err = ValidateConfig(config)
-	return &config, err
+	if err != nil {
+		return nil, err
+	}
+
+	return config, nil
 }

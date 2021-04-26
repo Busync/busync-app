@@ -15,17 +15,15 @@ func NewFileSystem() afero.Afero {
 func TestConfigFileFormats(t *testing.T) {
 	for configFileFormat, tC := range ConfigFileFormats {
 		filepath := "/" + tC.filename
-		originalconfig := Config{}
 
 		t.Run(configFileFormat+"/file_not_found", func(t *testing.T) {
 			assert := assert.New(t)
 			fs := NewFileSystem()
 
-			configPassedToLoader := originalconfig
-			err := LoadTOMLFile(fs, filepath, configPassedToLoader)
+			config, err := LoadConfigFromTOMLFile(fs, filepath)
 
 			assert.EqualError(err, fmt.Sprintf("open %s: file does not exist", filepath))
-			assert.Equal(originalconfig, configPassedToLoader)
+			assert.Nil(config)
 		})
 
 		t.Run(configFileFormat+"/is_a_dir", func(t *testing.T) {
@@ -36,11 +34,10 @@ func TestConfigFileFormats(t *testing.T) {
 				panic(err)
 			}
 
-			configPassedToLoader := originalconfig
-			err = LoadTOMLFile(fs, filepath, configPassedToLoader)
+			config, err := LoadConfigFromTOMLFile(fs, filepath)
 
 			assert.EqualError(err, fmt.Sprintf("%s is a directory", filepath))
-			assert.Equal(originalconfig, configPassedToLoader)
+			assert.Nil(config)
 		})
 	}
 }
@@ -53,7 +50,7 @@ func TestGetConfigFilePathAndItsLoader(t *testing.T) {
 		filepath     string
 		fileContent  string
 		wantFilepath string
-		wantLoad     func(afero.Afero, string, interface{}) error
+		wantLoad     func(afero.Afero, string) (*Config, error)
 		wantErr      string
 	}{
 		{
@@ -63,7 +60,7 @@ func TestGetConfigFilePathAndItsLoader(t *testing.T) {
 		{
 			desc:         "toml configuration found",
 			wantFilepath: configDir + TOML_CONFIG_FILE,
-			wantLoad:     LoadTOMLFile,
+			wantLoad:     LoadConfigFromTOMLFile,
 		},
 	}
 	for _, tC := range testCases {
@@ -92,14 +89,15 @@ func TestGetConfigFilePathAndItsLoader(t *testing.T) {
 func TestNoAppInConfig(t *testing.T) {
 	testCases := []struct {
 		desc   string
-		config Config
+		config *Config
 	}{
 		{
 			desc:   "no app",
-			config: Config{},
+			config: &Config{},
 		},
 		{
 			desc: "one app",
+			config: &Config{
 				Apps: map[string]AppConfig{
 					"foo": AppConfig{
 						BasicAuth: HTTPBasicAuthConfig{
@@ -112,6 +110,7 @@ func TestNoAppInConfig(t *testing.T) {
 		},
 		{
 			desc: "two apps",
+			config: &Config{
 				Apps: map[string]AppConfig{
 					"foo": AppConfig{
 						BasicAuth: HTTPBasicAuthConfig{
@@ -262,16 +261,17 @@ func TestGetNameOfAppsWithMissingAuth(t *testing.T) {
 func TestValidateConfig(t *testing.T) {
 	testCases := []struct {
 		desc    string
-		config  Config
+		config  *Config
 		wantErr string
 	}{
 		{
 			desc:    "no app config",
-			config:  Config{},
+			config:  &Config{},
 			wantErr: "no app in configuration file",
 		},
 		{
 			desc: "one app config with auth",
+			config: &Config{
 				Apps: map[string]AppConfig{
 					"foo": AppConfig{
 						BasicAuth: HTTPBasicAuthConfig{
@@ -284,6 +284,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "one app config with missing auth",
+			config: &Config{
 				Apps: map[string]AppConfig{
 					"foo": AppConfig{},
 				},
@@ -292,6 +293,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "two app configs with auth",
+			config: &Config{
 				Apps: map[string]AppConfig{
 					"foo": AppConfig{
 						BasicAuth: HTTPBasicAuthConfig{
@@ -310,6 +312,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "two app configs with missing auth",
+			config: &Config{
 				Apps: map[string]AppConfig{
 					"foo": AppConfig{},
 					"bar": AppConfig{},
@@ -319,8 +322,9 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "two app configs with one missing auth",
-			config: Config{
+			config: &Config{
 				Apps: map[string]AppConfig{
+					"foo": AppConfig{
 						BasicAuth: HTTPBasicAuthConfig{
 							Username: "foobar",
 							Password: "spameggs",
