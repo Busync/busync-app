@@ -350,12 +350,74 @@ func TestValidateConfig(t *testing.T) {
 }
 
 func TestLoadConfigFileFromDir(t *testing.T) {
-	assert := assert.New(t)
-	fs := NewFileSystem()
 	configDir := "/"
 
-	got, err := LoadConfigFileFromDir(fs, configDir)
+	testCases := []struct {
+		desc        string
+		filename    string
+		fileContent string
+		want        Config
+		wantErr     string
+	}{
+		{
+			desc:     "one app config with auth",
+			filename: TOML_CONFIG_FILE,
+			fileContent: `
+[apps]
+  [apps.foo]
+    [apps.foo.basic-auth]
+      password = "spameggs"
+      username = "foobar"
+`,
 
-	assert.EqualError(err, "no configuration file was found")
-	assert.Nil(got)
+			want: Config{
+				Apps: map[string]AppConfig{
+					"foo": {
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "foobar",
+							Password: "spameggs",
+						},
+					},
+				},
+			},
+		},
+		{
+			desc:    "no config file",
+			wantErr: "no configuration file was found",
+		},
+		{
+			desc:     "no app in config",
+			filename: TOML_CONFIG_FILE,
+			wantErr:  "no app in configuration file",
+		},
+		{
+			desc:     "one app config with missing auth",
+			filename: TOML_CONFIG_FILE,
+			fileContent: `
+[apps]
+  [apps.foo]
+    [apps.foo.basic-auth]
+`,
+			wantErr: "foo has no authentication provided",
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+			fs := NewFileSystem()
+			if tC.filename != "" {
+				filepath := configDir + tC.filename
+				fs.WriteFile(filepath, []byte(tC.fileContent), 0755)
+			}
+
+			if tC.desc == "one app config with auth" {
+				fmt.Println("test")
+			}
+			got, err := LoadConfigFileFromDir(fs, configDir)
+			if err != nil {
+				assert.EqualError(err, tC.wantErr)
+				assert.Nil(got)
+			}
+		})
+	}
 }
