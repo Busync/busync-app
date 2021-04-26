@@ -1,4 +1,4 @@
-package busylight_sync
+package main
 
 type RGBColor struct {
 	red   uint8
