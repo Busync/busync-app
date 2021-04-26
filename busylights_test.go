@@ -1,10 +1,21 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestNotImplementedBusyLight(t *testing.T) {
+	assert := assert.New(t)
+	busylightName := "NotImplementedBusylight"
+
+	sut, err := NewBusyLight(busylightName)
+
+	assert.Nil(sut)
+	assert.EqualError(err, fmt.Sprintf("%s busylight is not implemented", busylightName))
+}
 
 func TestFakeDeviceSetStaticColor(t *testing.T) {
 	testCases := []struct {
@@ -12,7 +23,7 @@ func TestFakeDeviceSetStaticColor(t *testing.T) {
 		color RGBColor
 	}{
 		{
-			desc:     "led off",
+			desc:  "led off",
 			color: OffColor,
 		},
 		{
@@ -58,4 +69,3 @@ func TestFakeDeviceOff(t *testing.T) {
 		})
 	}
 }
-

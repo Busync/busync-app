@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/google/gousb"
 )
 
@@ -17,6 +19,17 @@ var (
 type BusyLight interface {
 	SetStaticColor(RGBColor) error
 	Off()
+}
+
+func NewBusyLight(name string) (BusyLight, error) {
+	switch name {
+	case "luxafor-flag":
+		return NewLuxaforFlag()
+	case "fake-busylight":
+		return &FakeBusyLight{}, nil
+	default:
+		return nil, fmt.Errorf("%s busylight is not implemented", name)
+	}
 }
 
 type FakeBusyLight struct {
