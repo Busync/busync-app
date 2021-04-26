@@ -136,6 +136,33 @@ func MockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]inte
 	}
 }
 
+type appMockConfig struct {
+	httpClientType string
+	authConfig     interface{}
+	isBusy         bool
+	statusCode     int
+}
+
+func GetMockedApp(appName string, mockConfig appMockConfig) (app, error) {
+	jsonMap := MockJSONMapResponseForGivenApp(appName, mockConfig.isBusy)
+
+	mockedRequest := GetAPIMockedRequestForGivenApp(appName)
+	mockedRequest = MockRequestWithGivenAuth(
+		mockedRequest,
+		mockConfig.httpClientType,
+		mockConfig.authConfig,
+	)
+	mockedRequest.Reply(mockConfig.statusCode).
+		JSON(jsonMap)
+
+	httpClient, err := NewHTTPClient(mockConfig.httpClientType, mockConfig.authConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	return NewApp(appName, httpClient)
+}
+
 func TestAppsIsBusy(t *testing.T) {
 	apps := []string{
 		"fake",
@@ -143,66 +170,59 @@ func TestAppsIsBusy(t *testing.T) {
 	}
 
 	testCases := []struct {
-		desc           string
-		httpClientType string
-		authConfig     interface{}
-		isBusy         bool
-		statusCode     int
+		desc       string
+		mockConfig appMockConfig
 	}{
 		{
-			desc:           "is busy without auth",
-			httpClientType: "no-auth",
-			authConfig:     nil,
-			isBusy:         true,
-			statusCode:     200,
+			desc: "is busy without auth",
+			mockConfig: appMockConfig{
+				httpClientType: "no-auth",
+				authConfig:     nil,
+				isBusy:         true,
+				statusCode:     200,
+			},
 		},
 		{
-			desc:           "is not busy without auth",
-			httpClientType: "no-auth",
-			authConfig:     nil,
-			isBusy:         false,
-			statusCode:     200,
+			desc: "is not busy without auth",
+			mockConfig: appMockConfig{
+
+				httpClientType: "no-auth",
+				authConfig:     nil,
+				isBusy:         false,
+				statusCode:     200,
+			},
 		},
 		{
-			desc:           "is busy with basic auth",
-			httpClientType: "basic-auth",
-			authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
-			isBusy:         true,
-			statusCode:     200,
+			desc: "is busy with basic auth",
+			mockConfig: appMockConfig{
+				httpClientType: "basic-auth",
+				authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+				isBusy:         true,
+				statusCode:     200,
+			},
 		},
 		{
-			desc:           "is not busy with basic auth",
-			httpClientType: "basic-auth",
-			authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
-			isBusy:         false,
-			statusCode:     200,
+			desc: "is not busy with basic auth",
+			mockConfig: appMockConfig{
+				httpClientType: "basic-auth",
+				authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+				isBusy:         false,
+				statusCode:     200,
+			},
 		},
 	}
 	for _, appName := range apps {
 		for _, tC := range testCases {
 			t.Run(appName+"/"+tC.desc, func(t *testing.T) {
 				assert := assert.New(t)
-				jsonMap := MockJSONMapResponseForGivenApp(appName, tC.isBusy)
-
 				defer gock.Off()
-				mockedRequest := GetAPIMockedRequestForGivenApp(appName)
-				mockedRequest = MockRequestWithGivenAuth(
-					mockedRequest,
-					tC.httpClientType,
-					tC.authConfig,
-				)
-				mockedRequest.Reply(tC.statusCode).
-					JSON(jsonMap)
 
-				httpClient, err := NewHTTPClient(tC.httpClientType, tC.authConfig)
-				assert.NoError(err)
-
-				sut, err := NewApp(appName, httpClient)
+				sut, err := GetMockedApp(appName, tC.mockConfig)
 				assert.NoError(err)
 
 				res, err := sut.isBusy()
 				assert.NoError(err, "isBusy() method should not raise an error")
-				assert.Equal(res, tC.isBusy)
+				assert.Equal(res, tC.mockConfig.isBusy)
 			})
 		}
 	}
