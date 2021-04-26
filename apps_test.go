@@ -74,7 +74,7 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 func mockHTTPRequestWithBasicAuth(mockedRequest *gock.Request, authConfig HTTPBasicAuthConfig) *gock.Request {
 	return mockedRequest.MatchHeader(
 		"Authorization",
-		"Basic "+basicAuth(authConfig.username, authConfig.password),
+		"Basic "+basicAuth(authConfig.Username, authConfig.Password),
 	)
 }
 
@@ -166,14 +166,14 @@ func TestAppsIsBusy(t *testing.T) {
 		{
 			desc:           "is busy with basic auth",
 			httpClientType: "basic-auth",
-			authConfig:     HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
+			authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
 			isBusy:         true,
 			statusCode:     200,
 		},
 		{
 			desc:           "is not busy with basic auth",
 			httpClientType: "basic-auth",
-			authConfig:     HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
+			authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
 			isBusy:         false,
 			statusCode:     200,
 		},

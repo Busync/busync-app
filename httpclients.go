@@ -6,8 +6,8 @@ import (
 )
 
 type HTTPBasicAuthConfig struct {
-	username string
-	password string
+	Username string `toml:"username"`
+	Password string `toml:"password"`
 }
 
 type HTTPBasicAuthRoundTripper struct {
@@ -16,7 +16,7 @@ type HTTPBasicAuthRoundTripper struct {
 }
 
 func (brt HTTPBasicAuthRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.SetBasicAuth(brt.config.username, brt.config.password)
+	req.SetBasicAuth(brt.config.Username, brt.config.Password)
 
 	return brt.rt.RoundTrip(req)
 }

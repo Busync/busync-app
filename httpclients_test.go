@@ -52,42 +52,42 @@ func TestHTTPClientBasicAuth(t *testing.T) {
 	}{
 		{
 			desc:             "OK",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
 			statusCode:       200,
 		},
 		{
 			desc:             "OK no password",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: ""},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: ""},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: ""},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: ""},
 			statusCode:       200,
 		},
 		{
 			desc:             "OK no username",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "", password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "", password: "spameggs"},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "", Password: "spameggs"},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "", Password: "spameggs"},
 			statusCode:       200,
 		},
 		{
 			desc:             "OK no username and password",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "", password: ""},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "", password: ""},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "", Password: ""},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "", Password: ""},
 			statusCode:       200,
 		},
 		{
 			desc:             "Unauthorized wrong password",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: "barbaz"},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "barbaz"},
 		},
 		{
 			desc:             "Unauthorized wrong username",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "hamspam", password: "spameggs"},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "hamspam", Password: "spameggs"},
 		},
 		{
 			desc:             "Unauthorized wrong username and password",
-			clientAuthConfig: HTTPBasicAuthConfig{username: "foobar", password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{username: "hamspam", password: "barbaz"},
+			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: HTTPBasicAuthConfig{Username: "hamspam", Password: "barbaz"},
 		},
 	}
 	for _, tC := range testCases {
@@ -101,7 +101,7 @@ func TestHTTPClientBasicAuth(t *testing.T) {
 			gock.New(url).
 				MatchHeader(
 					"Authorization",
-					"Basic "+basicAuth(tC.serverAuthConfig.username, tC.serverAuthConfig.password),
+					"Basic "+basicAuth(tC.serverAuthConfig.Username, tC.serverAuthConfig.Password),
 				).
 				Reply(tC.statusCode)
 

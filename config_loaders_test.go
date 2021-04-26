@@ -100,12 +100,11 @@ func TestNoAppInConfig(t *testing.T) {
 		},
 		{
 			desc: "one app",
-			config: Config{
-				apps: map[string]AppConfig{
+				Apps: map[string]AppConfig{
 					"foo": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "foobar",
-							password: "spameggs",
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "foobar",
+							Password: "spameggs",
 						},
 					},
 				},
@@ -113,18 +112,17 @@ func TestNoAppInConfig(t *testing.T) {
 		},
 		{
 			desc: "two apps",
-			config: Config{
-				apps: map[string]AppConfig{
+				Apps: map[string]AppConfig{
 					"foo": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "foobar",
-							password: "spameggs",
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "foobar",
+							Password: "spameggs",
 						},
 					},
 					"bar": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "barbaz",
-							password: "hamspam",
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "barbaz",
+							Password: "hamspam",
 						},
 					},
 				},
@@ -138,9 +136,9 @@ func TestNoAppInConfig(t *testing.T) {
 			got := NoAppInConfig(tC.config)
 
 			if got {
-				assert.Equal(0, len(tC.config.apps))
+				assert.Equal(0, len(tC.config.Apps))
 			} else {
-				assert.Less(0, len(tC.config.apps))
+				assert.Less(0, len(tC.config.Apps))
 			}
 		})
 	}
@@ -158,9 +156,9 @@ func TestAppConfigIsEmpty(t *testing.T) {
 		{
 			desc: "is not empty",
 			appConfig: AppConfig{
-				basicAuth: HTTPBasicAuthConfig{
-					username: "foobar",
-					password: "spameggs",
+				BasicAuth: HTTPBasicAuthConfig{
+					Username: "foobar",
+					Password: "spameggs",
 				},
 			},
 		},
@@ -195,9 +193,9 @@ func TestGetNameOfAppsWithMissingAuth(t *testing.T) {
 			desc: "one app config with auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{
-					basicAuth: HTTPBasicAuthConfig{
-						username: "foobar",
-						password: "spameggs",
+					BasicAuth: HTTPBasicAuthConfig{
+						Username: "foobar",
+						Password: "spameggs",
 					},
 				},
 			},
@@ -214,15 +212,15 @@ func TestGetNameOfAppsWithMissingAuth(t *testing.T) {
 			desc: "two app configs with auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{
-					basicAuth: HTTPBasicAuthConfig{
-						username: "foobar",
-						password: "spameggs",
+					BasicAuth: HTTPBasicAuthConfig{
+						Username: "foobar",
+						Password: "spameggs",
 					},
 				},
 				"bar": AppConfig{
-					basicAuth: HTTPBasicAuthConfig{
-						username: "barbaz",
-						password: "hamspam",
+					BasicAuth: HTTPBasicAuthConfig{
+						Username: "barbaz",
+						Password: "hamspam",
 					},
 				},
 			},
@@ -240,9 +238,9 @@ func TestGetNameOfAppsWithMissingAuth(t *testing.T) {
 			desc: "two app configs with one missing auth",
 			appConfigs: map[string]AppConfig{
 				"foo": AppConfig{
-					basicAuth: HTTPBasicAuthConfig{
-						username: "foobar",
-						password: "spameggs",
+					BasicAuth: HTTPBasicAuthConfig{
+						Username: "foobar",
+						Password: "spameggs",
 					},
 				},
 				"bar": AppConfig{},
@@ -274,12 +272,11 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "one app config with auth",
-			config: Config{
-				apps: map[string]AppConfig{
+				Apps: map[string]AppConfig{
 					"foo": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "foobar",
-							password: "spameggs",
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "foobar",
+							Password: "spameggs",
 						},
 					},
 				},
@@ -287,8 +284,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "one app config with missing auth",
-			config: Config{
-				apps: map[string]AppConfig{
+				Apps: map[string]AppConfig{
 					"foo": AppConfig{},
 				},
 			},
@@ -296,18 +292,17 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "two app configs with auth",
-			config: Config{
-				apps: map[string]AppConfig{
+				Apps: map[string]AppConfig{
 					"foo": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "foobar",
-							password: "spameggs",
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "foobar",
+							Password: "spameggs",
 						},
 					},
 					"bar": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "barbaz",
-							password: "hamspam",
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "barbaz",
+							Password: "hamspam",
 						},
 					},
 				},
@@ -315,8 +310,7 @@ func TestValidateConfig(t *testing.T) {
 		},
 		{
 			desc: "two app configs with missing auth",
-			config: Config{
-				apps: map[string]AppConfig{
+				Apps: map[string]AppConfig{
 					"foo": AppConfig{},
 					"bar": AppConfig{},
 				},
@@ -326,11 +320,10 @@ func TestValidateConfig(t *testing.T) {
 		{
 			desc: "two app configs with one missing auth",
 			config: Config{
-				apps: map[string]AppConfig{
-					"foo": AppConfig{
-						basicAuth: HTTPBasicAuthConfig{
-							username: "foobar",
-							password: "spameggs",
+				Apps: map[string]AppConfig{
+						BasicAuth: HTTPBasicAuthConfig{
+							Username: "foobar",
+							Password: "spameggs",
 						},
 					},
 					"bar": AppConfig{},

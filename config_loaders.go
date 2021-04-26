@@ -25,11 +25,13 @@ var ConfigFileFormats = map[string]struct {
 }
 
 type AppConfig struct {
-	basicAuth HTTPBasicAuthConfig
+	BasicAuth HTTPBasicAuthConfig `toml:"basic-auth"`
 }
 
+type Apps map[string]AppConfig
+
 type Config struct {
-	apps map[string]AppConfig
+	Apps `toml:"apps"`
 }
 
 func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
@@ -48,8 +50,7 @@ func LoadTOMLFile(fs afero.Afero, filepath string, v interface{}) error {
 	return err
 }
 
-func NoAppInConfig(config Config) bool {
-	return len(config.apps) == 0
+	return len(config.Apps) == 0
 }
 
 func AppConfigIsEmpty(appConfig AppConfig) bool {
