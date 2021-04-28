@@ -26,3 +26,15 @@ func GetBusyStatesFromColors(colors []RGBColor) (busyStates []bool) {
 
 	return
 }
+
+func AllBusylightsAreInGivenBusyState(busylights []BusyLight, expectIsBusy bool) bool {
+	colors := GetColorOfAllGivenBusylights(busylights)
+	busyStates := GetBusyStatesFromColors(colors)
+	for _, currentIsBusy := range busyStates {
+		if currentIsBusy != expectIsBusy {
+			return false
+		}
+	}
+
+	return true
+}
