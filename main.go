@@ -58,3 +58,18 @@ func AnyOfGivenAppIsBusy(apps []app) bool {
 
 	return false
 }
+
+func ChangeBusyStateOfAllGivenBusylights(isBusy bool, busylights []BusyLight) error {
+	if len(busylights) == 0 {
+		return errors.New("no busylights has been given to change their states")
+	}
+
+	for _, busylight := range busylights {
+		if isBusy {
+			busylight.SetStaticColor(BusyColor)
+		} else {
+			busylight.SetStaticColor(UnoccupiedColor)
+		}
+	}
+	return nil
+}

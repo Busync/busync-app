@@ -239,3 +239,74 @@ func TestAnyOfGivenAppIsBusy(t *testing.T) {
 		})
 	}
 }
+
+func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
+	testCases := []struct {
+		desc       string
+		isBusy     bool
+		busylights []BusyLight
+	}{
+		{
+			desc:       "no busylights on given slice",
+			busylights: []BusyLight{},
+		},
+		{
+			desc: "one busylight from busy to unoccupied",
+			busylights: []BusyLight{
+				&FakeBusyLight{color: BusyColor},
+			},
+			isBusy: false,
+		},
+		{
+			desc: "one busylight stay busy",
+			busylights: []BusyLight{
+				&FakeBusyLight{color: BusyColor},
+			},
+			isBusy: true,
+		}, {
+			desc: "one busylight stay unoccupied",
+			busylights: []BusyLight{
+				&FakeBusyLight{color: UnoccupiedColor},
+			},
+			isBusy: false,
+		},
+
+		{
+			desc: "two busylights from busy to unnocupied with one staying unnocupied",
+			busylights: []BusyLight{
+				&FakeBusyLight{color: BusyColor},
+				&FakeBusyLight{color: UnoccupiedColor},
+			},
+			isBusy: false,
+		},
+		{
+			desc: "two busylights from unnocupied to busy with one staying busy",
+			busylights: []BusyLight{
+				&FakeBusyLight{color: BusyColor},
+				&FakeBusyLight{color: UnoccupiedColor},
+			},
+			isBusy: true,
+		},
+		{
+			desc: "one busylight from unoccupied to busy",
+			busylights: []BusyLight{
+				&FakeBusyLight{color: UnoccupiedColor},
+			},
+			isBusy: true,
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			err := ChangeBusyStateOfAllGivenBusylights(tC.isBusy, tC.busylights)
+
+			if err != nil {
+				assert.EqualError(err, "no busylights has been given to change their states")
+			} else {
+				assert.NoError(err)
+				assert.True(AllBusylightsAreInGivenBusyState(tC.busylights, tC.isBusy))
+			}
+		})
+	}
+}
