@@ -4,8 +4,19 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"os"
+	"time"
+
+	"github.com/spf13/afero"
 )
 
+var (
+	fs                    = afero.Afero{Fs: afero.NewOsFs()}
+	getConfigDir          = os.UserHomeDir
+	busyLightsToTryToOpen = []string{
+		"luxafor-flag",
+	}
+)
 
 func tryToGetGivenBusylights(busylightNames []string) ([]BusyLight, error) {
 	if len(busylightNames) == 0 {
@@ -43,7 +54,7 @@ func getAppsFromGivenConfig(config *Config) ([]app, error) {
 	if config == nil {
 		return apps, errors.New("given config is nil")
 	}
-	
+
 	for appName, appConfig := range config.Apps {
 
 		httpClient, err := getHTTPClientFromAppConfig(appConfig)
@@ -115,4 +126,42 @@ func AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights []BusyLight, 
 	}
 
 	return isBusy, nil
+}
+
+func main() {
+	configDir, err := getConfigDir()
+	if err != nil {
+		panic(err)
+	}
+
+	config, err := LoadConfigFileFromDir(fs, configDir)
+	if err != nil {
+		panic(err)
+	}
+
+	busylights, err := tryToGetGivenBusylights(busyLightsToTryToOpen)
+	if err != nil {
+		panic(err)
+	}
+
+	apps, err := getAppsFromGivenConfig(config)
+	if err != nil {
+		panic(err)
+	}
+
+	// Init busy state of busylights
+	wasBusy := false
+	ChangeBusyStateOfAllGivenBusylights(false, busylights)
+	if err != nil {
+		log.Println(err)
+	}
+
+	for {
+		wasBusy, err = AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights, apps, wasBusy)
+		if err != nil {
+			panic(err)
+		}
+
+		time.Sleep(1 * time.Second)
+	}
 }
