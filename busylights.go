@@ -14,7 +14,9 @@ const (
 )
 
 var (
-	OffColor RGBColor = RGBColor{red: 0, green: 0, blue: 0}
+	OffColor        RGBColor = RGBColor{red: 0, green: 0, blue: 0}
+	BusyColor       RGBColor = RGBColor{red: 255, green: 0, blue: 0}
+	UnoccupiedColor RGBColor = RGBColor{red: 0, green: 255, blue: 0}
 )
 
 type BusyLight interface {
