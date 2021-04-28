@@ -95,3 +95,24 @@ func ChangeBusyStateOfAllGivenBusylights(isBusy bool, busylights []BusyLight) er
 	}
 	return nil
 }
+
+func AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights []BusyLight, apps []app, wasBusy bool) (bool, error) {
+	if len(busylights) == 0 {
+		return wasBusy, errors.New("no busylights on given slice")
+	}
+
+	if len(apps) == 0 {
+		return wasBusy, errors.New("no apps on given slice")
+	}
+
+	isBusy := AnyOfGivenAppIsBusy(apps)
+
+	if isBusy != wasBusy {
+		err := ChangeBusyStateOfAllGivenBusylights(isBusy, busylights)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	return isBusy, nil
+}

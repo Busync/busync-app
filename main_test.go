@@ -290,12 +290,12 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 		desc       string
 		isBusy     bool
 		busylights []BusyLight
-		wantErr string
+		wantErr    string
 	}{
 		{
 			desc:       "no busylights on given slice",
 			busylights: []BusyLight{},
-			wantErr: "no busylights has been given to change their states",
+			wantErr:    "no busylights has been given to change their states",
 		},
 		{
 			desc: "one busylight from busy to unoccupied",
@@ -354,6 +354,170 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 				assert.NoError(err)
 				assert.True(AllBusylightsAreInGivenBusyState(tC.busylights, tC.isBusy))
 			}
+		})
+	}
+}
+
+func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
+	testCases := []struct {
+		desc           string
+		busylights     []BusyLight
+		appsMockConfig map[string]appMockConfig
+		wasBusy        bool
+		wantIsBusy     bool
+		wantErr        string
+	}{
+		{
+			desc:       "no busylights",
+			busylights: []BusyLight{},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+				},
+			},
+			wasBusy:    true,
+			wantIsBusy: true,
+			wantErr:    "no busylights on given slice",
+		},
+		{
+			desc: "no apps",
+			busylights: []BusyLight{
+				&FakeBusyLight{},
+			},
+			appsMockConfig: map[string]appMockConfig{},
+			wasBusy:        false,
+			wantIsBusy:     false,
+			wantErr:        "no apps on given slice",
+		},
+		{
+			desc: "one busy busylight & one unoccupied app",
+			busylights: []BusyLight{
+				&FakeBusyLight{
+					color: BusyColor,
+				},
+			},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+					isBusy:         false,
+					statusCode:     200,
+				},
+			},
+			wasBusy:    true,
+			wantIsBusy: false,
+		},
+		{
+			desc: "one unoccupied busylight & one busy app",
+			busylights: []BusyLight{
+				&FakeBusyLight{
+					color: BusyColor,
+				},
+			},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+					isBusy:         true,
+					statusCode:     200,
+				},
+			},
+			wasBusy:    false,
+			wantIsBusy: true,
+		},
+		{
+			desc: "both the busylight and the app are busy",
+			busylights: []BusyLight{
+				&FakeBusyLight{
+					color: BusyColor,
+				},
+			},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+					isBusy:         true,
+					statusCode:     200,
+				},
+			},
+			wasBusy:    true,
+			wantIsBusy: true,
+		},
+		{
+			desc: "both the busylight and the app are unoccupied",
+			busylights: []BusyLight{
+				&FakeBusyLight{
+					color: BusyColor,
+				},
+			},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+					isBusy:         false,
+					statusCode:     200,
+				},
+			},
+			wasBusy:    false,
+			wantIsBusy: false,
+		},
+		{
+			desc: "one busy busylight and two apps busy and unoccupied",
+			busylights: []BusyLight{
+				&FakeBusyLight{
+					color: BusyColor,
+				},
+			},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+					isBusy:         true,
+					statusCode:     200,
+				},
+				"toggl": {
+					httpClientType: "no-auth",
+					isBusy:         false,
+					statusCode:     200,
+				},
+			},
+			wasBusy:    true,
+			wantIsBusy: true,
+		},
+		{
+			desc: "one unoccupied busylight and two apps busy and unoccupied",
+			busylights: []BusyLight{
+				&FakeBusyLight{
+					color: BusyColor,
+				},
+			},
+			appsMockConfig: map[string]appMockConfig{
+				"fake": {
+					httpClientType: "no-auth",
+					isBusy:         true,
+					statusCode:     200,
+				},
+				"toggl": {
+					httpClientType: "no-auth",
+					isBusy:         false,
+					statusCode:     200,
+				},
+			},
+			wasBusy:    false,
+			wantIsBusy: true,
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+			defer gock.Off()
+
+			apps := GetSliceOfMockedApps(tC.appsMockConfig)
+
+			isBusy, err := AdaptBusylightsBusyStateAccordingToBusyStateOfApps(tC.busylights, apps, tC.wasBusy)
+
+			if err != nil {
+				assert.EqualError(err, tC.wantErr)
+			} else {
+				assert.NoError(err)
+			}
+			assert.Equal(tC.wantIsBusy, isBusy)
+
 		})
 	}
 }
