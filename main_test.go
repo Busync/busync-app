@@ -8,6 +8,60 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
+func TestTryToGetGivenBusylights(t *testing.T) {
+	testCases := []struct {
+		desc                  string
+		busyLightsToTryToOpen []string
+		wantBusylights        []string
+		wantErr               string
+	}{
+		{
+			desc:    "empty slice",
+			wantErr: "no busylights on given slice",
+		},
+		{
+			desc:                  "one busylights",
+			busyLightsToTryToOpen: []string{"fake-busylight"},
+			wantBusylights:        []string{"FakeBusyLight"},
+		},
+		{
+			desc:                  "two busylights",
+			busyLightsToTryToOpen: []string{"fake-busylight", "fake-busylight"},
+			wantBusylights:        []string{"FakeBusyLight", "FakeBusyLight"},
+		},
+		{
+			desc:                  "one busylight and zero found",
+			busyLightsToTryToOpen: []string{"foobar"},
+			wantErr: "no busylight found",
+		},
+		{
+			desc:                  "two busylights and zero found",
+			busyLightsToTryToOpen: []string{"foobar", "spameggs"},
+			wantErr: "no busylight found",
+		},
+		{
+			desc:                  "two busylights and one found",
+			busyLightsToTryToOpen: []string{"fake-busylight", "spameggs"},
+			wantBusylights: []string{"FakeBusyLight"},
+		},
+	}
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			assert := assert.New(t)
+
+			busylights, err := tryToGetGivenBusylights(tC.busyLightsToTryToOpen)
+			busylightsNames := GetBusylightNames(busylights)
+
+			if err != nil {
+				assert.EqualError(err, tC.wantErr)
+				assert.Nil(busylights)
+			} else {
+				assert.NoError(err)
+				assert.Equal(tC.wantBusylights, busylightsNames)
+			}
+		})
+	}
+}
 
 func TestGetHTTPClientFromAppConfig(t *testing.T) {
 	testCases := []struct {

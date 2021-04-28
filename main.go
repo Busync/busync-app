@@ -7,6 +7,28 @@ import (
 )
 
 
+func tryToGetGivenBusylights(busylightNames []string) ([]BusyLight, error) {
+	if len(busylightNames) == 0 {
+		return nil, errors.New("no busylights on given slice")
+	}
+
+	busylights := make([]BusyLight, 0)
+	for _, busylightName := range busylightNames {
+		openedBusylight, err := NewBusyLight(busylightName)
+		if err != nil {
+			log.Printf("error when trying to open the busylight %s: %s", busylightName, err)
+		} else {
+			busylights = append(busylights, openedBusylight)
+		}
+	}
+
+	if len(busylights) == 0 {
+		return nil, errors.New("no busylight found")
+	}
+
+	return busylights, nil
+}
+
 func getHTTPClientFromAppConfig(config AppConfig) (*http.Client, error) {
 	if config.BasicAuth.isNotEmpty() {
 		return NewHTTPClient("basic-auth", config.BasicAuth)
