@@ -8,14 +8,6 @@ import (
 	"gopkg.in/h2non/gock.v1"
 )
 
-func convertAppSliceToInterfaceSlice(apps []app) []interface{} {
-	var interfaceSlice []interface{} = make([]interface{}, len(apps))
-	for i, app := range apps {
-		interfaceSlice[i] = app
-	}
-
-	return interfaceSlice
-}
 
 func TestGetHTTPClientFromAppConfig(t *testing.T) {
 	testCases := []struct {
@@ -133,8 +125,7 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 			assert := assert.New(t)
 
 			apps, err := getAppsFromGivenConfig(tC.config)
-			appsInterfaceSlice := convertAppSliceToInterfaceSlice(apps)
-			appsNames := GetSliceOfStructNames(appsInterfaceSlice)
+			appsNames := GetAppNames(apps)
 
 			if err != nil {
 
