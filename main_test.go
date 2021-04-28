@@ -32,17 +32,17 @@ func TestTryToGetGivenBusylights(t *testing.T) {
 		{
 			desc:                  "one busylight and zero found",
 			busyLightsToTryToOpen: []string{"foobar"},
-			wantErr: "no busylight found",
+			wantErr:               "no busylight found",
 		},
 		{
 			desc:                  "two busylights and zero found",
 			busyLightsToTryToOpen: []string{"foobar", "spameggs"},
-			wantErr: "no busylight found",
+			wantErr:               "no busylight found",
 		},
 		{
 			desc:                  "two busylights and one found",
 			busyLightsToTryToOpen: []string{"fake-busylight", "spameggs"},
-			wantBusylights: []string{"FakeBusyLight"},
+			wantBusylights:        []string{"FakeBusyLight"},
 		},
 	}
 	for _, tC := range testCases {
@@ -290,10 +290,12 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 		desc       string
 		isBusy     bool
 		busylights []BusyLight
+		wantErr string
 	}{
 		{
 			desc:       "no busylights on given slice",
 			busylights: []BusyLight{},
+			wantErr: "no busylights has been given to change their states",
 		},
 		{
 			desc: "one busylight from busy to unoccupied",
@@ -347,7 +349,7 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 			err := ChangeBusyStateOfAllGivenBusylights(tC.isBusy, tC.busylights)
 
 			if err != nil {
-				assert.EqualError(err, "no busylights has been given to change their states")
+				assert.EqualError(err, tC.wantErr)
 			} else {
 				assert.NoError(err)
 				assert.True(AllBusylightsAreInGivenBusyState(tC.busylights, tC.isBusy))
