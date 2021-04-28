@@ -43,10 +43,9 @@ func TestConfigFileFormats(t *testing.T) {
 }
 
 func TestGetConfigFilePathAndItsLoader(t *testing.T) {
-	configDir := "/"
-
 	testCases := []struct {
 		desc         string
+		configDir    string
 		filepath     string
 		fileContent  string
 		wantFilepath string
@@ -54,12 +53,26 @@ func TestGetConfigFilePathAndItsLoader(t *testing.T) {
 		wantErr      string
 	}{
 		{
-			desc:    "no configuration file found",
-			wantErr: "no configuration file was found",
+			desc:      "no configuration file found",
+			configDir: "/",
+			wantErr:   "no configuration file was found",
 		},
 		{
-			desc:         "toml configuration found",
-			wantFilepath: configDir + TOML_CONFIG_FILE,
+			desc:         "toml configuration on rootdir",
+			configDir:    "/",
+			wantFilepath: "/" + TOML_CONFIG_FILE,
+			wantLoad:     LoadConfigFromTOMLFile,
+		},
+		{
+			desc:         "configuration on subdir with trailing slash",
+			configDir:    "/subdir/",
+			wantFilepath: "/subdir/" + TOML_CONFIG_FILE,
+			wantLoad:     LoadConfigFromTOMLFile,
+		},
+		{
+			desc:         "configuration on subdir without trailing slash",
+			configDir:    "/subdir",
+			wantFilepath: "/subdir/" + TOML_CONFIG_FILE,
 			wantLoad:     LoadConfigFromTOMLFile,
 		},
 	}
@@ -73,7 +86,7 @@ func TestGetConfigFilePathAndItsLoader(t *testing.T) {
 				fs.WriteFile(tC.wantFilepath, []byte(tC.fileContent), 0755)
 			}
 
-			gotFilepath, gotLoad, err := GetConfigFilePathAndItsLoader(fs, configDir)
+			gotFilepath, gotLoad, err := GetConfigFilePathAndItsLoader(fs, tC.configDir)
 			gotLoadFuncName := GetFuncName(gotLoad)
 
 			if err != nil {

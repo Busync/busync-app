@@ -86,6 +86,8 @@ func ValidateConfig(config *Config) error {
 }
 
 func GetConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, func(afero.Afero, string) (*Config, error), error) {
+	configDir = AddTrailingSlashIfNotExistsOnGivenPath(configDir)
+
 	for _, configFileFormat := range ConfigFileFormats {
 		filepath := configDir + configFileFormat.filename
 
