@@ -17,7 +17,7 @@ func TestNotImplementedBusyLight(t *testing.T) {
 	assert.EqualError(err, fmt.Sprintf("%s busylight is not implemented", busylightName))
 }
 
-func TestFakeDeviceSetStaticColor(t *testing.T) {
+func TestFakeDeviceStaticColor(t *testing.T) {
 	testCases := []struct {
 		desc  string
 		color RGBColor
@@ -38,7 +38,10 @@ func TestFakeDeviceSetStaticColor(t *testing.T) {
 			sut := FakeBusyLight{}
 			sut.SetStaticColor(tC.color)
 
-			assert.Equal(tC.color, sut.color)
+			gotColor, err := sut.GetStaticColor()
+			assert.NoError(err)
+
+			assert.Equal(tC.color, gotColor)
 		})
 	}
 }

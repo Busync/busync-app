@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/google/gousb"
@@ -17,6 +18,7 @@ var (
 )
 
 type BusyLight interface {
+	GetStaticColor() (RGBColor, error)
 	SetStaticColor(RGBColor) error
 	Off()
 }
@@ -34,6 +36,10 @@ func NewBusyLight(name string) (BusyLight, error) {
 
 type FakeBusyLight struct {
 	color RGBColor
+}
+
+func (f FakeBusyLight) GetStaticColor() (RGBColor, error) {
+	return f.color, nil
 }
 
 func (f *FakeBusyLight) SetStaticColor(color RGBColor) error {
@@ -66,6 +72,10 @@ func (l *LuxaforFlag) SetStaticColor(color RGBColor) error {
 
 	err := l.device.WriteCommand(data)
 	return err
+}
+
+func (LuxaforFlag) GetStaticColor() (RGBColor, error) {
+	return RGBColor{}, errors.New("GetStaticColor is not implemented on Luxafor Flag")
 }
 
 func (l *LuxaforFlag) Off() {
