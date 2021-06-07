@@ -1,19 +1,19 @@
 package main
 
-func GetBusylightNames(busylights []BusyLight) []string {
+func getBusylightNames(busylights []busyLight) []string {
 	var busylightNames = make([]string, 0)
 	for _, currentBusylight := range busylights {
-		busylightName := GetStructName(currentBusylight)
+		busylightName := getStructName(currentBusylight)
 		busylightNames = append(busylightNames, busylightName)
 	}
 
 	return busylightNames
 }
 
-func GetAppNames(apps []app) []string {
+func getAppNames(apps []busyApps) []string {
 	var appNames = make([]string, 0)
 	for _, currentApp := range apps {
-		appName := GetStructName(currentApp)
+		appName := getStructName(currentApp)
 		appNames = append(appNames, appName)
 	}
 

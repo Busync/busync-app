@@ -1,9 +1,9 @@
 package main
 
-func GetColorOfAllGivenBusylights(busylights []BusyLight) []RGBColor {
-	colors := make([]RGBColor, 0)
+func getColorOfAllGivenBusylights(busylights []busyLight) []rgbColor {
+	colors := make([]rgbColor, 0)
 	for _, busylight := range busylights {
-		color, err := busylight.GetStaticColor()
+		color, err := busylight.getStaticColor()
 		if err != nil {
 			panic(err)
 		}
@@ -13,7 +13,7 @@ func GetColorOfAllGivenBusylights(busylights []BusyLight) []RGBColor {
 	return colors
 }
 
-func GetBusyStatesFromColors(colors []RGBColor) (busyStates []bool) {
+func getBusyStatesFromColors(colors []rgbColor) (busyStates []bool) {
 	busyStates = make([]bool, 0)
 	for _, color := range colors {
 		switch color {
@@ -27,9 +27,9 @@ func GetBusyStatesFromColors(colors []RGBColor) (busyStates []bool) {
 	return
 }
 
-func AllBusylightsAreInGivenBusyState(busylights []BusyLight, expectIsBusy bool) bool {
-	colors := GetColorOfAllGivenBusylights(busylights)
-	busyStates := GetBusyStatesFromColors(colors)
+func allBusylightsAreInGivenBusyState(busylights []busyLight, expectIsBusy bool) bool {
+	colors := getColorOfAllGivenBusylights(busylights)
+	busyStates := getBusyStatesFromColors(colors)
 	for _, currentIsBusy := range busyStates {
 		if currentIsBusy != expectIsBusy {
 			return false

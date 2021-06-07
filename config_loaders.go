@@ -14,27 +14,27 @@ const (
 	TOML_CONFIG_FILE string = ".busylight-sync.toml"
 )
 
-var ConfigFileFormats = map[string]struct {
+var configFileFormats = map[string]struct {
 	filename string
-	load     func(afero.Afero, string) (*Config, error)
+	load     func(afero.Afero, string) (*configuration, error)
 }{
 	"toml": {
 		filename: TOML_CONFIG_FILE,
-		load:     LoadConfigFromTOMLFile,
+		load:     loadConfigFromTOMLFile,
 	},
 }
 
-type AppConfig struct {
-	BasicAuth HTTPBasicAuthConfig `toml:"basic-auth"`
+type appConfiguration struct {
+	BasicAuth httpBasicAuthConfig `toml:"basic-auth"`
 }
 
-type Apps map[string]AppConfig
+type Apps map[string]appConfiguration
 
-type Config struct {
+type configuration struct {
 	Apps `toml:"apps"`
 }
 
-func LoadConfigFromTOMLFile(fs afero.Afero, filepath string) (*Config, error) {
+func loadConfigFromTOMLFile(fs afero.Afero, filepath string) (*configuration, error) {
 	if isDir, err := fs.IsDir(filepath); isDir {
 		return nil, fmt.Errorf("%s is a directory", filepath)
 	} else if err != nil {
@@ -46,23 +46,23 @@ func LoadConfigFromTOMLFile(fs afero.Afero, filepath string) (*Config, error) {
 		return nil, err
 	}
 
-	var config Config
-	err = toml.Unmarshal(data, &config)
-	return &config, err
+	var loadedConfig configuration
+	err = toml.Unmarshal(data, &loadedConfig)
+	return &loadedConfig, err
 }
 
-func NoAppInConfig(config *Config) bool {
+func noAppInConfig(config *configuration) bool {
 	return len(config.Apps) == 0
 }
 
-func AppConfigIsEmpty(appConfig AppConfig) bool {
-	return appConfig == AppConfig{}
+func appConfigIsEmpty(appConfig appConfiguration) bool {
+	return appConfig == appConfiguration{}
 }
 
-func GetNameOfAppsWithMissingAuth(appConfigs map[string]AppConfig) []string {
+func getNameOfAppsWithMissingAuth(appConfigs map[string]appConfiguration) []string {
 	appNamesWithMissingAuth := make([]string, 0)
 	for appName, appConfig := range appConfigs {
-		if AppConfigIsEmpty(appConfig) {
+		if appConfigIsEmpty(appConfig) {
 			appNamesWithMissingAuth = append(appNamesWithMissingAuth, appName)
 		}
 	}
@@ -71,12 +71,12 @@ func GetNameOfAppsWithMissingAuth(appConfigs map[string]AppConfig) []string {
 	return appNamesWithMissingAuth
 }
 
-func ValidateConfig(config *Config) error {
-	if NoAppInConfig(config) {
+func validateConfig(config *configuration) error {
+	if noAppInConfig(config) {
 		return errors.New("no app in configuration file")
 	}
 
-	appNamesWithMissingAuth := GetNameOfAppsWithMissingAuth(config.Apps)
+	appNamesWithMissingAuth := getNameOfAppsWithMissingAuth(config.Apps)
 	if len(appNamesWithMissingAuth) > 0 {
 		joinedAppNamesWithMissingAuth := strings.Join(appNamesWithMissingAuth, ", ")
 		return fmt.Errorf("%s has no authentication provided", joinedAppNamesWithMissingAuth)
@@ -85,10 +85,10 @@ func ValidateConfig(config *Config) error {
 	return nil
 }
 
-func GetConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, func(afero.Afero, string) (*Config, error), error) {
-	configDir = AddTrailingSlashIfNotExistsOnGivenPath(configDir)
+func getConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, func(afero.Afero, string) (*configuration, error), error) {
+	configDir = addTrailingSlashIfNotExistsOnGivenPath(configDir)
 
-	for _, configFileFormat := range ConfigFileFormats {
+	for _, configFileFormat := range configFileFormats {
 		filepath := configDir + configFileFormat.filename
 
 		fileExists, err := fs.Exists(filepath)
@@ -102,21 +102,21 @@ func GetConfigFilePathAndItsLoader(fs afero.Afero, configDir string) (string, fu
 	return "", nil, errors.New("no configuration file was found")
 }
 
-func LoadConfigFileFromDir(fs afero.Afero, configDir string) (*Config, error) {
-	filepath, load, err := GetConfigFilePathAndItsLoader(fs, configDir)
+func loadConfigFileFromDir(fs afero.Afero, configDir string) (*configuration, error) {
+	filepath, load, err := getConfigFilePathAndItsLoader(fs, configDir)
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := load(fs, filepath)
+	loadedConfig, err := load(fs, filepath)
 	if err != nil {
 		return nil, err
 	}
 
-	err = ValidateConfig(config)
+	err = validateConfig(loadedConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	return config, nil
+	return loadedConfig, nil
 }

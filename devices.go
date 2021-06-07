@@ -6,13 +6,13 @@ import (
 	"github.com/google/gousb"
 )
 
-type USBDevice struct {
+type usbDevice struct {
 	context     *gousb.Context
 	outEndpoint *gousb.OutEndpoint
 	closer      func()
 }
 
-func NewUSBDevice(vendorID, productID gousb.ID) (*USBDevice, error) {
+func newUSBDevice(vendorID, productID gousb.ID) (*usbDevice, error) {
 	ctx := gousb.NewContext()
 	dev, err := ctx.OpenDeviceWithVIDPID(vendorID, productID)
 	if err != nil {
@@ -37,21 +37,21 @@ func NewUSBDevice(vendorID, productID gousb.ID) (*USBDevice, error) {
 		return nil, err
 	}
 
-	return &USBDevice{
+	return &usbDevice{
 		context:     ctx,
 		outEndpoint: outEndpoint,
 		closer:      closer,
 	}, nil
 }
 
-func (u USBDevice) Close() error {
+func (u usbDevice) close() error {
 	u.closer()
 	err := u.context.Close()
 
 	return err
 }
 
-func (u *USBDevice) WriteCommand(command []byte) error {
+func (u *usbDevice) writeCommand(command []byte) error {
 	_, err := u.outEndpoint.Write(command)
 
 	return err

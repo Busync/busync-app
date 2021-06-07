@@ -25,7 +25,7 @@ func TestUSBDeviceOpen(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 
-			dev, err := NewUSBDevice(tC.vendorID, tC.productID)
+			dev, err := newUSBDevice(tC.vendorID, tC.productID)
 
 			if err != nil {
 				assert.EqualError(err, tC.wantErr)

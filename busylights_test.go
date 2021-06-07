@@ -11,7 +11,7 @@ func TestNotImplementedBusyLight(t *testing.T) {
 	assert := assert.New(t)
 	busylightName := "NotImplementedBusylight"
 
-	sut, err := NewBusyLight(busylightName)
+	sut, err := newBusyLight(busylightName)
 
 	assert.Nil(sut)
 	assert.EqualError(err, fmt.Sprintf("%s busylight is not implemented", busylightName))
@@ -20,7 +20,7 @@ func TestNotImplementedBusyLight(t *testing.T) {
 func TestFakeDeviceStaticColor(t *testing.T) {
 	testCases := []struct {
 		desc  string
-		color RGBColor
+		color rgbColor
 	}{
 		{
 			desc:  "led off",
@@ -28,17 +28,17 @@ func TestFakeDeviceStaticColor(t *testing.T) {
 		},
 		{
 			desc:  "white",
-			color: RGBColor{red: 255, green: 255, blue: 255},
+			color: rgbColor{red: 255, green: 255, blue: 255},
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 
-			sut := FakeBusyLight{}
-			sut.SetStaticColor(tC.color)
+			sut := fakeBusyLight{}
+			sut.setStaticColor(tC.color)
 
-			gotColor, err := sut.GetStaticColor()
+			gotColor, err := sut.getStaticColor()
 			assert.NoError(err)
 
 			assert.Equal(tC.color, gotColor)
@@ -49,7 +49,7 @@ func TestFakeDeviceStaticColor(t *testing.T) {
 func TestFakeDeviceOff(t *testing.T) {
 	testCases := []struct {
 		desc             string
-		previousRGBColor RGBColor
+		previousRGBColor rgbColor
 	}{
 		{
 			desc:             "already off",
@@ -57,16 +57,16 @@ func TestFakeDeviceOff(t *testing.T) {
 		},
 		{
 			desc:             "was white",
-			previousRGBColor: RGBColor{red: 255, green: 255, blue: 255},
+			previousRGBColor: rgbColor{red: 255, green: 255, blue: 255},
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
-			sut := FakeBusyLight{}
-			sut.SetStaticColor(tC.previousRGBColor)
+			sut := fakeBusyLight{}
+			sut.setStaticColor(tC.previousRGBColor)
 
-			sut.Off()
+			sut.off()
 
 			assert.Equal(OffColor, sut.color)
 		})

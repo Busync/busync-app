@@ -14,72 +14,72 @@ const (
 )
 
 var (
-	OffColor        RGBColor = RGBColor{red: 0, green: 0, blue: 0}
-	BusyColor       RGBColor = RGBColor{red: 255, green: 0, blue: 0}
-	UnoccupiedColor RGBColor = RGBColor{red: 0, green: 255, blue: 0}
+	OffColor        rgbColor = rgbColor{red: 0, green: 0, blue: 0}
+	BusyColor       rgbColor = rgbColor{red: 255, green: 0, blue: 0}
+	UnoccupiedColor rgbColor = rgbColor{red: 0, green: 255, blue: 0}
 )
 
-type BusyLight interface {
-	GetStaticColor() (RGBColor, error)
-	SetStaticColor(RGBColor) error
-	Off()
+type busyLight interface {
+	getStaticColor() (rgbColor, error)
+	setStaticColor(rgbColor) error
+	off()
 }
 
-func NewBusyLight(name string) (BusyLight, error) {
+func newBusyLight(name string) (busyLight, error) {
 	switch name {
 	case "luxafor-flag":
-		return NewLuxaforFlag()
+		return newLuxaforFlag()
 	case "fake-busylight":
-		return &FakeBusyLight{}, nil
+		return &fakeBusyLight{}, nil
 	default:
 		return nil, fmt.Errorf("%s busylight is not implemented", name)
 	}
 }
 
-type FakeBusyLight struct {
-	color RGBColor
+type fakeBusyLight struct {
+	color rgbColor
 }
 
-func (f FakeBusyLight) GetStaticColor() (RGBColor, error) {
+func (f fakeBusyLight) getStaticColor() (rgbColor, error) {
 	return f.color, nil
 }
 
-func (f *FakeBusyLight) SetStaticColor(color RGBColor) error {
+func (f *fakeBusyLight) setStaticColor(color rgbColor) error {
 	f.color = color
 
 	return nil
 }
 
-func (f *FakeBusyLight) Off() {
-	f.SetStaticColor(OffColor)
+func (f *fakeBusyLight) off() {
+	f.setStaticColor(OffColor)
 }
 
-type LuxaforFlag struct {
-	device *USBDevice
+type luxaforFlag struct {
+	device *usbDevice
 }
 
-func NewLuxaforFlag() (BusyLight, error) {
-	dev, err := NewUSBDevice(LUXAFOR_FLAG_VENDOR_ID, LUXAFOR_FLAG_PRODUCT_ID)
+func newLuxaforFlag() (busyLight, error) {
+	dev, err := newUSBDevice(LUXAFOR_FLAG_VENDOR_ID, LUXAFOR_FLAG_PRODUCT_ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &LuxaforFlag{
+	return &luxaforFlag{
 		device: dev,
 	}, nil
 }
 
-func (l *LuxaforFlag) SetStaticColor(color RGBColor) error {
+func (l *luxaforFlag) setStaticColor(color rgbColor) error {
 	data := []byte{0x01, LUXAFOR_FLAG_ALL_LED, color.red, color.green, color.blue, 0, 0x0, 0x0}
 
-	err := l.device.WriteCommand(data)
+	err := l.device.writeCommand(data)
 	return err
 }
 
-func (LuxaforFlag) GetStaticColor() (RGBColor, error) {
-	return RGBColor{}, errors.New("GetStaticColor is not implemented on Luxafor Flag")
+func (luxaforFlag) getStaticColor() (rgbColor, error) {
+	return rgbColor{}, errors.New("GetStaticColor is not implemented on Luxafor Flag")
 }
 
-func (l *LuxaforFlag) Off() {
-	l.SetStaticColor(OffColor)
+func (l *luxaforFlag) off() {
+	l.setStaticColor(OffColor)
 }

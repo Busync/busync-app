@@ -18,14 +18,14 @@ var (
 	}
 )
 
-func tryToGetGivenBusylights(busylightNames []string) ([]BusyLight, error) {
+func tryToGetGivenBusylights(busylightNames []string) ([]busyLight, error) {
 	if len(busylightNames) == 0 {
 		return nil, errors.New("no busylights on given slice")
 	}
 
-	busylights := make([]BusyLight, 0)
+	busylights := make([]busyLight, 0)
 	for _, busylightName := range busylightNames {
-		openedBusylight, err := NewBusyLight(busylightName)
+		openedBusylight, err := newBusyLight(busylightName)
 		if err != nil {
 			log.Printf("error when trying to open the busylight %s: %s", busylightName, err)
 		} else {
@@ -40,16 +40,16 @@ func tryToGetGivenBusylights(busylightNames []string) ([]BusyLight, error) {
 	return busylights, nil
 }
 
-func getHTTPClientFromAppConfig(config AppConfig) (*http.Client, error) {
+func getHTTPClientFromAppConfig(config appConfiguration) (*http.Client, error) {
 	if config.BasicAuth.isNotEmpty() {
-		return NewHTTPClient("basic-auth", config.BasicAuth)
+		return newHTTPClient("basic-auth", config.BasicAuth)
 	}
 
 	return nil, errors.New("given app config is empty")
 }
 
-func getAppsFromGivenConfig(config *Config) ([]app, error) {
-	apps := make([]app, 0)
+func getAppsFromGivenConfig(config *configuration) ([]busyApps, error) {
+	apps := make([]busyApps, 0)
 
 	if config == nil {
 		return apps, errors.New("given config is nil")
@@ -63,7 +63,7 @@ func getAppsFromGivenConfig(config *Config) ([]app, error) {
 			continue
 		}
 
-		app, err := NewApp(appName, httpClient)
+		app, err := newApp(appName, httpClient)
 		if err != nil {
 			log.Printf("error when trying to load %s app: %s", appName, err)
 		} else {
@@ -78,7 +78,7 @@ func getAppsFromGivenConfig(config *Config) ([]app, error) {
 	}
 }
 
-func AnyOfGivenAppIsBusy(apps []app) bool {
+func AnyOfGivenAppIsBusy(apps []busyApps) bool {
 	for _, app := range apps {
 		isBusy, err := app.isBusy()
 		if err != nil {
@@ -92,22 +92,22 @@ func AnyOfGivenAppIsBusy(apps []app) bool {
 	return false
 }
 
-func ChangeBusyStateOfAllGivenBusylights(isBusy bool, busylights []BusyLight) error {
+func ChangeBusyStateOfAllGivenBusylights(isBusy bool, busylights []busyLight) error {
 	if len(busylights) == 0 {
 		return errors.New("no busylights has been given to change their states")
 	}
 
 	for _, busylight := range busylights {
 		if isBusy {
-			busylight.SetStaticColor(BusyColor)
+			busylight.setStaticColor(BusyColor)
 		} else {
-			busylight.SetStaticColor(UnoccupiedColor)
+			busylight.setStaticColor(UnoccupiedColor)
 		}
 	}
 	return nil
 }
 
-func AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights []BusyLight, apps []app, wasBusy bool) (bool, error) {
+func AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights []busyLight, apps []busyApps, wasBusy bool) (bool, error) {
 	if len(busylights) == 0 {
 		return wasBusy, errors.New("no busylights on given slice")
 	}
@@ -134,7 +134,7 @@ func main() {
 		panic(err)
 	}
 
-	config, err := LoadConfigFileFromDir(fs, configDir)
+	config, err := loadConfigFileFromDir(fs, configDir)
 	if err != nil {
 		panic(err)
 	}

@@ -12,10 +12,10 @@ import (
 func TestNotImplementedApp(t *testing.T) {
 	assert := assert.New(t)
 	appName := "NotImplementedApp"
-	httpClient, err := NewHTTPClient("no-auth", nil)
+	httpClient, err := newHTTPClient("no-auth", nil)
 	assert.NoError(err)
 
-	sut, err := NewApp(appName, httpClient)
+	sut, err := newApp(appName, httpClient)
 
 	assert.Nil(sut)
 	assert.EqualError(err, fmt.Sprintf("%s is not implemented", appName))
@@ -24,7 +24,7 @@ func TestNotImplementedApp(t *testing.T) {
 func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 	httpClient := &http.Client{}
 
-	testCases := map[app][]struct {
+	testCases := map[busyApps][]struct {
 		desc         string
 		jsonResponse interface{}
 		want         bool
@@ -32,26 +32,26 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 		FakeApp{httpClient}: {
 			{
 				desc:         "is busy",
-				jsonResponse: FakeAppJSONResponse{IsBusy: true},
+				jsonResponse: fakeAppJSONResponse{IsBusy: true},
 				want:         true,
 			},
 			{
 				desc:         "is not busy",
-				jsonResponse: FakeAppJSONResponse{IsBusy: false},
+				jsonResponse: fakeAppJSONResponse{IsBusy: false},
 				want:         false,
 			},
 		},
 		Toggl{httpClient}: {
 			{
 				desc: "is busy",
-				jsonResponse: TogglJSONResponse{Data: struct {
+				jsonResponse: togglJSONResponse{Data: struct {
 					Id int `json:"id"`
 				}{1}},
 				want: true,
 			},
 			{
 				desc: "is not busy",
-				jsonResponse: TogglJSONResponse{Data: struct {
+				jsonResponse: togglJSONResponse{Data: struct {
 					Id int `json:"id"`
 				}{0}},
 				want: false,
@@ -59,7 +59,7 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 		},
 	}
 	for sut, tCs := range testCases {
-		appName := GetStructName(sut)
+		appName := getStructName(sut)
 		for _, tC := range tCs {
 			t.Run(fmt.Sprintf("%s/%s", appName, tC.desc), func(t *testing.T) {
 				assert := assert.New(t)
@@ -104,7 +104,7 @@ func TestAppsIsBusy(t *testing.T) {
 			desc: "is busy with basic auth",
 			mockConfig: appMockConfig{
 				httpClientType: "basic-auth",
-				authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+				authConfig:     httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
 				isBusy:         true,
 				statusCode:     200,
 			},
@@ -113,7 +113,7 @@ func TestAppsIsBusy(t *testing.T) {
 			desc: "is not busy with basic auth",
 			mockConfig: appMockConfig{
 				httpClientType: "basic-auth",
-				authConfig:     HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+				authConfig:     httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
 				isBusy:         false,
 				statusCode:     200,
 			},
@@ -125,7 +125,7 @@ func TestAppsIsBusy(t *testing.T) {
 				assert := assert.New(t)
 				defer gock.Off()
 
-				sut, err := GetMockedApp(appName, tC.mockConfig)
+				sut, err := getMockedApp(appName, tC.mockConfig)
 				assert.NoError(err)
 
 				res, err := sut.isBusy()

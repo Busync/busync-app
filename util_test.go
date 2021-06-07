@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func GetStructName(s interface{}) string {
+func getStructName(s interface{}) string {
 	completeStructname := fmt.Sprintf("%T", s)
 	splittedStructName := strings.Split(completeStructname, ".")
 
 	return splittedStructName[len(splittedStructName)-1]
 }
 
-func GetFuncName(function interface{}) string {
+func getFuncName(function interface{}) string {
 	funcPointer := reflect.ValueOf(function).Pointer()
 	return runtime.FuncForPC(funcPointer).Name()
 }
@@ -48,7 +48,7 @@ func TestAddTrailingSlashIfNotExistsOnGivenPath(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 
-			got := AddTrailingSlashIfNotExistsOnGivenPath(tC.path)
+			got := addTrailingSlashIfNotExistsOnGivenPath(tC.path)
 
 			assert.Equal(tC.want, got)
 		})

@@ -18,17 +18,17 @@ func basicAuth(username, password string) string {
 func TestHTTPAuthConfigIsEmptyMethod(t *testing.T) {
 	testCases := []struct {
 		desc       string
-		authConfig HTTPAuthConfig
+		authConfig httpAuthConfig
 		want       bool
 	}{
 		{
 			desc:       "basic auth is empty",
-			authConfig: HTTPBasicAuthConfig{},
+			authConfig: httpBasicAuthConfig{},
 			want:       false,
 		},
 		{
 			desc: "basic auth is not empty",
-			authConfig: HTTPBasicAuthConfig{
+			authConfig: httpBasicAuthConfig{
 				Username: "foobar",
 				Password: "spameggs",
 			},
@@ -48,7 +48,7 @@ func TestHTTPClientNotImplemented(t *testing.T) {
 	assert := assert.New(t)
 	authType := "foobar"
 
-	got, err := NewHTTPClient(authType, nil)
+	got, err := newHTTPClient(authType, nil)
 
 	assert.Nil(got)
 	assert.Error(err)
@@ -64,7 +64,7 @@ func TestHTTPClientNoAuth(t *testing.T) {
 	gock.New(url).
 		Reply(200)
 
-	sut, err := NewHTTPClient(authType, nil)
+	sut, err := newHTTPClient(authType, nil)
 	assert.NoError(err)
 
 	resp, err := sut.Get(url)
@@ -75,48 +75,48 @@ func TestHTTPClientNoAuth(t *testing.T) {
 func TestHTTPClientBasicAuth(t *testing.T) {
 	testCases := []struct {
 		desc             string
-		clientAuthConfig HTTPBasicAuthConfig
-		serverAuthConfig HTTPBasicAuthConfig
+		clientAuthConfig httpBasicAuthConfig
+		serverAuthConfig httpBasicAuthConfig
 		statusCode       int
 	}{
 		{
 			desc:             "OK",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			clientAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
 			statusCode:       200,
 		},
 		{
 			desc:             "OK no password",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: ""},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: ""},
+			clientAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: ""},
+			serverAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: ""},
 			statusCode:       200,
 		},
 		{
 			desc:             "OK no username",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "", Password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "", Password: "spameggs"},
+			clientAuthConfig: httpBasicAuthConfig{Username: "", Password: "spameggs"},
+			serverAuthConfig: httpBasicAuthConfig{Username: "", Password: "spameggs"},
 			statusCode:       200,
 		},
 		{
 			desc:             "OK no username and password",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "", Password: ""},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "", Password: ""},
+			clientAuthConfig: httpBasicAuthConfig{Username: "", Password: ""},
+			serverAuthConfig: httpBasicAuthConfig{Username: "", Password: ""},
 			statusCode:       200,
 		},
 		{
 			desc:             "Unauthorized wrong password",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "barbaz"},
+			clientAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: "barbaz"},
 		},
 		{
 			desc:             "Unauthorized wrong username",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "hamspam", Password: "spameggs"},
+			clientAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: httpBasicAuthConfig{Username: "hamspam", Password: "spameggs"},
 		},
 		{
 			desc:             "Unauthorized wrong username and password",
-			clientAuthConfig: HTTPBasicAuthConfig{Username: "foobar", Password: "spameggs"},
-			serverAuthConfig: HTTPBasicAuthConfig{Username: "hamspam", Password: "barbaz"},
+			clientAuthConfig: httpBasicAuthConfig{Username: "foobar", Password: "spameggs"},
+			serverAuthConfig: httpBasicAuthConfig{Username: "hamspam", Password: "barbaz"},
 		},
 	}
 	for _, tC := range testCases {
@@ -134,7 +134,7 @@ func TestHTTPClientBasicAuth(t *testing.T) {
 				).
 				Reply(tC.statusCode)
 
-			sut, err := NewHTTPClient(authType, tC.clientAuthConfig)
+			sut, err := newHTTPClient(authType, tC.clientAuthConfig)
 			assert.NoError(err)
 
 			got, err := sut.Get(url)

@@ -13,12 +13,12 @@ const (
 	TOGGL_API_PATH   = "/time_entries/current"
 )
 
-type app interface {
+type busyApps interface {
 	getBusyStateFromJSONResponse(interface{}) bool
 	isBusy() (bool, error)
 }
 
-func NewApp(appName string, client *http.Client) (app, error) {
+func newApp(appName string, client *http.Client) (busyApps, error) {
 	switch appName {
 	case "fake":
 		return &FakeApp{client}, nil
@@ -29,7 +29,7 @@ func NewApp(appName string, client *http.Client) (app, error) {
 	}
 }
 
-type FakeAppJSONResponse struct {
+type fakeAppJSONResponse struct {
 	IsBusy bool `json:"isBusy"`
 }
 
@@ -38,7 +38,7 @@ type FakeApp struct {
 }
 
 func (FakeApp) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
-	return jsonResponse.(FakeAppJSONResponse).IsBusy
+	return jsonResponse.(fakeAppJSONResponse).IsBusy
 }
 
 func (f FakeApp) isBusy() (bool, error) {
@@ -47,7 +47,7 @@ func (f FakeApp) isBusy() (bool, error) {
 		return false, err
 	}
 
-	var jsonResponse FakeAppJSONResponse
+	var jsonResponse fakeAppJSONResponse
 	err = json.NewDecoder(resp.Body).Decode(&jsonResponse)
 	if err != nil {
 		return false, err
@@ -56,7 +56,7 @@ func (f FakeApp) isBusy() (bool, error) {
 	return f.getBusyStateFromJSONResponse(jsonResponse), nil
 }
 
-type TogglJSONResponse struct {
+type togglJSONResponse struct {
 	Data struct {
 		Id int `json:"id"`
 	} `json:"data"`
@@ -67,7 +67,7 @@ type Toggl struct {
 }
 
 func (Toggl) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
-	return jsonResponse.(TogglJSONResponse).Data.Id != 0
+	return jsonResponse.(togglJSONResponse).Data.Id != 0
 }
 
 func (t Toggl) isBusy() (bool, error) {
@@ -76,7 +76,7 @@ func (t Toggl) isBusy() (bool, error) {
 		return false, err
 	}
 
-	var jsonResponse TogglJSONResponse
+	var jsonResponse togglJSONResponse
 	err = json.NewDecoder(resp.Body).Decode(&jsonResponse)
 	if err != nil {
 		return false, err

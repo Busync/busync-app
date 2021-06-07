@@ -22,12 +22,12 @@ func TestTryToGetGivenBusylights(t *testing.T) {
 		{
 			desc:                  "one busylights",
 			busyLightsToTryToOpen: []string{"fake-busylight"},
-			wantBusylights:        []string{"FakeBusyLight"},
+			wantBusylights:        []string{"fakeBusyLight"},
 		},
 		{
 			desc:                  "two busylights",
 			busyLightsToTryToOpen: []string{"fake-busylight", "fake-busylight"},
-			wantBusylights:        []string{"FakeBusyLight", "FakeBusyLight"},
+			wantBusylights:        []string{"fakeBusyLight", "fakeBusyLight"},
 		},
 		{
 			desc:                  "one busylight and zero found",
@@ -42,7 +42,7 @@ func TestTryToGetGivenBusylights(t *testing.T) {
 		{
 			desc:                  "two busylights and one found",
 			busyLightsToTryToOpen: []string{"fake-busylight", "spameggs"},
-			wantBusylights:        []string{"FakeBusyLight"},
+			wantBusylights:        []string{"fakeBusyLight"},
 		},
 	}
 	for _, tC := range testCases {
@@ -50,7 +50,7 @@ func TestTryToGetGivenBusylights(t *testing.T) {
 			assert := assert.New(t)
 
 			busylights, err := tryToGetGivenBusylights(tC.busyLightsToTryToOpen)
-			busylightsNames := GetBusylightNames(busylights)
+			busylightsNames := getBusylightNames(busylights)
 
 			if err != nil {
 				assert.EqualError(err, tC.wantErr)
@@ -66,7 +66,7 @@ func TestTryToGetGivenBusylights(t *testing.T) {
 func TestGetHTTPClientFromAppConfig(t *testing.T) {
 	testCases := []struct {
 		desc      string
-		appConfig AppConfig
+		appConfig appConfiguration
 		wantErr   string
 	}{
 		{
@@ -75,8 +75,8 @@ func TestGetHTTPClientFromAppConfig(t *testing.T) {
 		},
 		{
 			desc: "got http client from basic auth",
-			appConfig: AppConfig{
-				BasicAuth: HTTPBasicAuthConfig{
+			appConfig: appConfiguration{
+				BasicAuth: httpBasicAuthConfig{
 					Username: "foobar",
 					Password: "spameggs",
 				},
@@ -103,7 +103,7 @@ func TestGetHTTPClientFromAppConfig(t *testing.T) {
 func TestGetAppsFromGivenConfig(t *testing.T) {
 	testCases := []struct {
 		desc     string
-		config   *Config
+		config   *configuration
 		wantApps []string
 		wantErr  string
 	}{
@@ -113,12 +113,12 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 		},
 		{
 			desc:    "no app",
-			config:  &Config{},
+			config:  &configuration{},
 			wantErr: "no app could be loaded from given config",
 		},
 		{
 			desc: "one app with no auth",
-			config: &Config{
+			config: &configuration{
 				Apps{
 					"toggl": {},
 				},
@@ -127,10 +127,10 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 		},
 		{
 			desc: "one non implemented app",
-			config: &Config{
+			config: &configuration{
 				Apps{
 					"foo": {
-						BasicAuth: HTTPBasicAuthConfig{
+						BasicAuth: httpBasicAuthConfig{
 							Username: "foobar",
 							Password: "spameggs",
 						},
@@ -141,10 +141,10 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 		},
 		{
 			desc: "one app",
-			config: &Config{
+			config: &configuration{
 				Apps{
 					"fake": {
-						BasicAuth: HTTPBasicAuthConfig{
+						BasicAuth: httpBasicAuthConfig{
 							Username: "foobar",
 							Password: "spameggs",
 						},
@@ -155,16 +155,16 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 		},
 		{
 			desc: "two apps",
-			config: &Config{
+			config: &configuration{
 				Apps{
 					"fake": {
-						BasicAuth: HTTPBasicAuthConfig{
+						BasicAuth: httpBasicAuthConfig{
 							Username: "foobar",
 							Password: "spameggs",
 						},
 					},
 					"toggl": {
-						BasicAuth: HTTPBasicAuthConfig{
+						BasicAuth: httpBasicAuthConfig{
 							Username: "barbaz",
 							Password: "hamspam",
 						},
@@ -179,7 +179,7 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 			assert := assert.New(t)
 
 			apps, err := getAppsFromGivenConfig(tC.config)
-			appsNames := GetAppNames(apps)
+			appsNames := getAppNames(apps)
 
 			if err != nil {
 
@@ -276,7 +276,7 @@ func TestAnyOfGivenAppIsBusy(t *testing.T) {
 			assert := assert.New(t)
 			defer gock.Off()
 
-			apps := GetSliceOfMockedApps(tC.appsMockConfig)
+			apps := getSliceOfMockedApps(tC.appsMockConfig)
 
 			got := AnyOfGivenAppIsBusy(apps)
 
@@ -289,55 +289,55 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 	testCases := []struct {
 		desc       string
 		isBusy     bool
-		busylights []BusyLight
+		busylights []busyLight
 		wantErr    string
 	}{
 		{
 			desc:       "no busylights on given slice",
-			busylights: []BusyLight{},
+			busylights: []busyLight{},
 			wantErr:    "no busylights has been given to change their states",
 		},
 		{
 			desc: "one busylight from busy to unoccupied",
-			busylights: []BusyLight{
-				&FakeBusyLight{color: BusyColor},
+			busylights: []busyLight{
+				&fakeBusyLight{color: BusyColor},
 			},
 			isBusy: false,
 		},
 		{
 			desc: "one busylight stay busy",
-			busylights: []BusyLight{
-				&FakeBusyLight{color: BusyColor},
+			busylights: []busyLight{
+				&fakeBusyLight{color: BusyColor},
 			},
 			isBusy: true,
 		}, {
 			desc: "one busylight stay unoccupied",
-			busylights: []BusyLight{
-				&FakeBusyLight{color: UnoccupiedColor},
+			busylights: []busyLight{
+				&fakeBusyLight{color: UnoccupiedColor},
 			},
 			isBusy: false,
 		},
 
 		{
 			desc: "two busylights from busy to unnocupied with one staying unnocupied",
-			busylights: []BusyLight{
-				&FakeBusyLight{color: BusyColor},
-				&FakeBusyLight{color: UnoccupiedColor},
+			busylights: []busyLight{
+				&fakeBusyLight{color: BusyColor},
+				&fakeBusyLight{color: UnoccupiedColor},
 			},
 			isBusy: false,
 		},
 		{
 			desc: "two busylights from unnocupied to busy with one staying busy",
-			busylights: []BusyLight{
-				&FakeBusyLight{color: BusyColor},
-				&FakeBusyLight{color: UnoccupiedColor},
+			busylights: []busyLight{
+				&fakeBusyLight{color: BusyColor},
+				&fakeBusyLight{color: UnoccupiedColor},
 			},
 			isBusy: true,
 		},
 		{
 			desc: "one busylight from unoccupied to busy",
-			busylights: []BusyLight{
-				&FakeBusyLight{color: UnoccupiedColor},
+			busylights: []busyLight{
+				&fakeBusyLight{color: UnoccupiedColor},
 			},
 			isBusy: true,
 		},
@@ -352,7 +352,7 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 				assert.EqualError(err, tC.wantErr)
 			} else {
 				assert.NoError(err)
-				assert.True(AllBusylightsAreInGivenBusyState(tC.busylights, tC.isBusy))
+				assert.True(allBusylightsAreInGivenBusyState(tC.busylights, tC.isBusy))
 			}
 		})
 	}
@@ -361,7 +361,7 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 	testCases := []struct {
 		desc           string
-		busylights     []BusyLight
+		busylights     []busyLight
 		appsMockConfig map[string]appMockConfig
 		wasBusy        bool
 		wantIsBusy     bool
@@ -369,7 +369,7 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 	}{
 		{
 			desc:       "no busylights",
-			busylights: []BusyLight{},
+			busylights: []busyLight{},
 			appsMockConfig: map[string]appMockConfig{
 				"fake": {
 					httpClientType: "no-auth",
@@ -381,8 +381,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "no apps",
-			busylights: []BusyLight{
-				&FakeBusyLight{},
+			busylights: []busyLight{
+				&fakeBusyLight{},
 			},
 			appsMockConfig: map[string]appMockConfig{},
 			wasBusy:        false,
@@ -391,8 +391,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "one busy busylight & one unoccupied app",
-			busylights: []BusyLight{
-				&FakeBusyLight{
+			busylights: []busyLight{
+				&fakeBusyLight{
 					color: BusyColor,
 				},
 			},
@@ -408,8 +408,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "one unoccupied busylight & one busy app",
-			busylights: []BusyLight{
-				&FakeBusyLight{
+			busylights: []busyLight{
+				&fakeBusyLight{
 					color: BusyColor,
 				},
 			},
@@ -425,8 +425,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "both the busylight and the app are busy",
-			busylights: []BusyLight{
-				&FakeBusyLight{
+			busylights: []busyLight{
+				&fakeBusyLight{
 					color: BusyColor,
 				},
 			},
@@ -442,8 +442,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "both the busylight and the app are unoccupied",
-			busylights: []BusyLight{
-				&FakeBusyLight{
+			busylights: []busyLight{
+				&fakeBusyLight{
 					color: BusyColor,
 				},
 			},
@@ -459,8 +459,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "one busy busylight and two apps busy and unoccupied",
-			busylights: []BusyLight{
-				&FakeBusyLight{
+			busylights: []busyLight{
+				&fakeBusyLight{
 					color: BusyColor,
 				},
 			},
@@ -481,8 +481,8 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 		},
 		{
 			desc: "one unoccupied busylight and two apps busy and unoccupied",
-			busylights: []BusyLight{
-				&FakeBusyLight{
+			busylights: []busyLight{
+				&fakeBusyLight{
 					color: BusyColor,
 				},
 			},
@@ -507,7 +507,7 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 			assert := assert.New(t)
 			defer gock.Off()
 
-			apps := GetSliceOfMockedApps(tC.appsMockConfig)
+			apps := getSliceOfMockedApps(tC.appsMockConfig)
 
 			isBusy, err := AdaptBusylightsBusyStateAccordingToBusyStateOfApps(tC.busylights, apps, tC.wasBusy)
 

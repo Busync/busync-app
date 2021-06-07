@@ -14,7 +14,7 @@ type appMockConfig struct {
 	statusCode     int
 }
 
-func GetAPIMockedRequestForGivenApp(appName string) *gock.Request {
+func getAPIMockedRequestForGivenApp(appName string) *gock.Request {
 	var url, path string
 	switch appName {
 	case "fake":
@@ -31,30 +31,30 @@ func GetAPIMockedRequestForGivenApp(appName string) *gock.Request {
 		Get(path)
 }
 
-func mockHTTPRequestWithBasicAuth(mockedRequest *gock.Request, authConfig HTTPBasicAuthConfig) *gock.Request {
+func mockHTTPRequestWithBasicAuth(mockedRequest *gock.Request, authConfig httpBasicAuthConfig) *gock.Request {
 	return mockedRequest.MatchHeader(
 		"Authorization",
 		"Basic "+basicAuth(authConfig.Username, authConfig.Password),
 	)
 }
 
-func MockRequestWithGivenAuth(req *gock.Request, httpClientType string, authConfig interface{}) *gock.Request {
+func mockRequestWithGivenAuth(req *gock.Request, httpClientType string, authConfig interface{}) *gock.Request {
 	switch httpClientType {
 	case "no-auth":
 		return req
 	case "basic-auth":
-		return mockHTTPRequestWithBasicAuth(req, authConfig.(HTTPBasicAuthConfig))
+		return mockHTTPRequestWithBasicAuth(req, authConfig.(httpBasicAuthConfig))
 	default:
 		panic(fmt.Sprintf("%s mock http client not implemented", httpClientType))
 	}
 }
 
-func GetFakeAppMockedJSONMapResponse(isBusy bool) map[string]interface{} {
-	mockedJSONResponse := FakeAppJSONResponse{IsBusy: isBusy}
+func getFakeAppMockedJSONMapResponse(isBusy bool) map[string]interface{} {
+	mockedJSONResponse := fakeAppJSONResponse{IsBusy: isBusy}
 	return structs.Map(mockedJSONResponse)
 }
 
-func GetTogglMockedJSONMapResponse(isBusy bool) map[string]interface{} {
+func getTogglMockedJSONMapResponse(isBusy bool) map[string]interface{} {
 	var id int
 	if isBusy {
 		id = 12345
@@ -62,28 +62,28 @@ func GetTogglMockedJSONMapResponse(isBusy bool) map[string]interface{} {
 		id = 0
 	}
 
-	mockedJSONResponse := TogglJSONResponse{Data: struct {
+	mockedJSONResponse := togglJSONResponse{Data: struct {
 		Id int `json:"id"`
 	}{Id: id}}
 	return structs.Map(mockedJSONResponse)
 }
 
-func MockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]interface{} {
+func mockJSONMapResponseForGivenApp(appName string, isBusy bool) map[string]interface{} {
 	switch appName {
 	case "fake":
-		return GetFakeAppMockedJSONMapResponse(isBusy)
+		return getFakeAppMockedJSONMapResponse(isBusy)
 	case "toggl":
-		return GetTogglMockedJSONMapResponse(isBusy)
+		return getTogglMockedJSONMapResponse(isBusy)
 	default:
 		panic(fmt.Sprintf("%s app mock json map response not implemented", appName))
 	}
 }
 
-func GetMockedApp(appName string, mockConfig appMockConfig) (app, error) {
-	jsonMap := MockJSONMapResponseForGivenApp(appName, mockConfig.isBusy)
+func getMockedApp(appName string, mockConfig appMockConfig) (busyApps, error) {
+	jsonMap := mockJSONMapResponseForGivenApp(appName, mockConfig.isBusy)
 
-	mockedRequest := GetAPIMockedRequestForGivenApp(appName)
-	mockedRequest = MockRequestWithGivenAuth(
+	mockedRequest := getAPIMockedRequestForGivenApp(appName)
+	mockedRequest = mockRequestWithGivenAuth(
 		mockedRequest,
 		mockConfig.httpClientType,
 		mockConfig.authConfig,
@@ -91,19 +91,19 @@ func GetMockedApp(appName string, mockConfig appMockConfig) (app, error) {
 	mockedRequest.Reply(mockConfig.statusCode).
 		JSON(jsonMap)
 
-	httpClient, err := NewHTTPClient(mockConfig.httpClientType, mockConfig.authConfig)
+	httpClient, err := newHTTPClient(mockConfig.httpClientType, mockConfig.authConfig)
 	if err != nil {
 		panic(err)
 	}
 
-	return NewApp(appName, httpClient)
+	return newApp(appName, httpClient)
 }
 
-func GetSliceOfMockedApps(appsNameAndConfig map[string]appMockConfig) []app {
-	apps := make([]app, 0)
+func getSliceOfMockedApps(appsNameAndConfig map[string]appMockConfig) []busyApps {
+	apps := make([]busyApps, 0)
 
 	for appName, mockConfig := range appsNameAndConfig {
-		app, err := GetMockedApp(appName, mockConfig)
+		app, err := getMockedApp(appName, mockConfig)
 		if err != nil {
 			panic(err)
 		}

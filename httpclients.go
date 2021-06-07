@@ -5,32 +5,32 @@ import (
 	"net/http"
 )
 
-type HTTPAuthConfig interface {
+type httpAuthConfig interface {
 	isNotEmpty() bool
 }
 
-type HTTPBasicAuthConfig struct {
+type httpBasicAuthConfig struct {
 	Username string `toml:"username"`
 	Password string `toml:"password"`
 }
 
-func (b HTTPBasicAuthConfig) isNotEmpty() bool {
-	return b != HTTPBasicAuthConfig{}
+func (b httpBasicAuthConfig) isNotEmpty() bool {
+	return b != httpBasicAuthConfig{}
 }
 
-type HTTPBasicAuthRoundTripper struct {
+type httpBasicAuthRoundTripper struct {
 	rt     http.RoundTripper
-	config HTTPBasicAuthConfig
+	config httpBasicAuthConfig
 }
 
-func (brt HTTPBasicAuthRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+func (brt httpBasicAuthRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
 	req.SetBasicAuth(brt.config.Username, brt.config.Password)
 
 	return brt.rt.RoundTrip(req)
 }
 
-func NewBasicAuthClient(config HTTPBasicAuthConfig) *http.Client {
-	roundTripper := HTTPBasicAuthRoundTripper{
+func newBasicAuthClient(config httpBasicAuthConfig) *http.Client {
+	roundTripper := httpBasicAuthRoundTripper{
 		config: config,
 		rt:     http.DefaultTransport,
 	}
@@ -40,12 +40,12 @@ func NewBasicAuthClient(config HTTPBasicAuthConfig) *http.Client {
 	}
 }
 
-func NewHTTPClient(authType string, authConfig interface{}) (*http.Client, error) {
+func newHTTPClient(authType string, authConfig interface{}) (*http.Client, error) {
 	switch authType {
 	case "no-auth":
 		return &http.Client{}, nil
 	case "basic-auth":
-		return NewBasicAuthClient(authConfig.(HTTPBasicAuthConfig)), nil
+		return newBasicAuthClient(authConfig.(httpBasicAuthConfig)), nil
 	default:
 		return nil, fmt.Errorf("%s is not implemented", authType)
 	}
