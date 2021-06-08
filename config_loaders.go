@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	TOML_CONFIG_FILE string = ".busylight-sync.toml"
+	TOML_CONFIG_FILE string = ".busync.toml"
 )
 
 var configFileFormats = map[string]struct {

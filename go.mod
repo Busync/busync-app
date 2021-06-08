@@ -1,4 +1,4 @@
-module github.com/kmarilleau/busylight-sync
+module github.com/busync/busync-app
 
 go 1.16
 
