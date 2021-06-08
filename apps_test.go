@@ -15,7 +15,7 @@ func TestNotImplementedApp(t *testing.T) {
 	httpClient, err := newHTTPClient("no-auth", nil)
 	assert.NoError(err)
 
-	sut, err := newApp(appName, httpClient)
+	sut, err := newBusyApp(appName, httpClient)
 
 	assert.Nil(sut)
 	assert.EqualError(err, fmt.Sprintf("%s is not implemented", appName))
@@ -29,7 +29,7 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 		jsonResponse interface{}
 		want         bool
 	}{
-		FakeApp{httpClient}: {
+		fakeBusyApp{httpClient}: {
 			{
 				desc:         "is busy",
 				jsonResponse: fakeAppJSONResponse{IsBusy: true},
@@ -41,7 +41,7 @@ func TestAppsGetBusyStateFromJSONMapResponse(t *testing.T) {
 				want:         false,
 			},
 		},
-		Toggl{httpClient}: {
+		togglBusyApp{httpClient}: {
 			{
 				desc: "is busy",
 				jsonResponse: togglJSONResponse{Data: struct {

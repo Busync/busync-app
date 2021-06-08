@@ -151,7 +151,7 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 					},
 				},
 			},
-			wantApps: []string{"FakeApp"},
+			wantApps: []string{"fakeBusyApp"},
 		},
 		{
 			desc: "two apps",
@@ -171,7 +171,7 @@ func TestGetAppsFromGivenConfig(t *testing.T) {
 					},
 				},
 			},
-			wantApps: []string{"FakeApp", "Toggl"},
+			wantApps: []string{"fakeBusyApp", "togglBusyApp"},
 		},
 	}
 	for _, tC := range testCases {

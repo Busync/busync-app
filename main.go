@@ -63,7 +63,7 @@ func getAppsFromGivenConfig(config *configuration) ([]busyApps, error) {
 			continue
 		}
 
-		app, err := newApp(appName, httpClient)
+		app, err := newBusyApp(appName, httpClient)
 		if err != nil {
 			log.Printf("error when trying to load %s app: %s", appName, err)
 		} else {

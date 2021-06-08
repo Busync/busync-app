@@ -18,12 +18,12 @@ type busyApps interface {
 	isBusy() (bool, error)
 }
 
-func newApp(appName string, client *http.Client) (busyApps, error) {
+func newBusyApp(appName string, client *http.Client) (busyApps, error) {
 	switch appName {
 	case "fake":
-		return &FakeApp{client}, nil
+		return &fakeBusyApp{client}, nil
 	case "toggl":
-		return &Toggl{client}, nil
+		return &togglBusyApp{client}, nil
 	default:
 		return nil, fmt.Errorf("%s is not implemented", appName)
 	}
@@ -33,15 +33,15 @@ type fakeAppJSONResponse struct {
 	IsBusy bool `json:"isBusy"`
 }
 
-type FakeApp struct {
+type fakeBusyApp struct {
 	client *http.Client
 }
 
-func (FakeApp) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
+func (fakeBusyApp) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
 	return jsonResponse.(fakeAppJSONResponse).IsBusy
 }
 
-func (f FakeApp) isBusy() (bool, error) {
+func (f fakeBusyApp) isBusy() (bool, error) {
 	resp, err := f.client.Get(FAKEAPP_API_URL + FAKEAPP_API_PATH)
 	if err != nil {
 		return false, err
@@ -62,15 +62,15 @@ type togglJSONResponse struct {
 	} `json:"data"`
 }
 
-type Toggl struct {
+type togglBusyApp struct {
 	client *http.Client
 }
 
-func (Toggl) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
+func (togglBusyApp) getBusyStateFromJSONResponse(jsonResponse interface{}) bool {
 	return jsonResponse.(togglJSONResponse).Data.Id != 0
 }
 
-func (t Toggl) isBusy() (bool, error) {
+func (t togglBusyApp) isBusy() (bool, error) {
 	resp, err := t.client.Get(TOGGL_API_URL + TOGGL_API_PATH)
 	if err != nil {
 		return false, err

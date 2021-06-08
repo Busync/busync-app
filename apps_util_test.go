@@ -96,7 +96,7 @@ func getMockedApp(appName string, mockConfig appMockConfig) (busyApps, error) {
 		panic(err)
 	}
 
-	return newApp(appName, httpClient)
+	return newBusyApp(appName, httpClient)
 }
 
 func getSliceOfMockedApps(appsNameAndConfig map[string]appMockConfig) []busyApps {
