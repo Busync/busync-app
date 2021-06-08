@@ -278,7 +278,7 @@ func TestAnyOfGivenAppIsBusy(t *testing.T) {
 
 			apps := getSliceOfMockedApps(tC.appsMockConfig)
 
-			got := AnyOfGivenAppIsBusy(apps)
+			got := anyOfGivenAppIsBusy(apps)
 
 			assert.Equal(tC.want, got)
 		})
@@ -346,7 +346,7 @@ func TestChangeBusyStateOfAllGivenBusylights(t *testing.T) {
 		t.Run(tC.desc, func(t *testing.T) {
 			assert := assert.New(t)
 
-			err := ChangeBusyStateOfAllGivenBusylights(tC.isBusy, tC.busylights)
+			err := changeBusyStateForAllGivenBusylights(tC.isBusy, tC.busylights)
 
 			if err != nil {
 				assert.EqualError(err, tC.wantErr)
@@ -509,7 +509,7 @@ func TestAdaptBusylightsBusyStateAccordingToBusyStateOfApps(t *testing.T) {
 
 			apps := getSliceOfMockedApps(tC.appsMockConfig)
 
-			isBusy, err := AdaptBusylightsBusyStateAccordingToBusyStateOfApps(tC.busylights, apps, tC.wasBusy)
+			isBusy, err := adaptBusylightsAccordingToBusyStateOfApps(tC.busylights, apps, tC.wasBusy)
 
 			if err != nil {
 				assert.EqualError(err, tC.wantErr)

@@ -78,7 +78,7 @@ func getAppsFromGivenConfig(config *configuration) ([]busyApps, error) {
 	}
 }
 
-func AnyOfGivenAppIsBusy(apps []busyApps) bool {
+func anyOfGivenAppIsBusy(apps []busyApps) bool {
 	for _, app := range apps {
 		isBusy, err := app.isBusy()
 		if err != nil {
@@ -92,7 +92,7 @@ func AnyOfGivenAppIsBusy(apps []busyApps) bool {
 	return false
 }
 
-func ChangeBusyStateOfAllGivenBusylights(isBusy bool, busylights []busyLight) error {
+func changeBusyStateForAllGivenBusylights(isBusy bool, busylights []busyLight) error {
 	if len(busylights) == 0 {
 		return errors.New("no busylights has been given to change their states")
 	}
@@ -107,7 +107,7 @@ func ChangeBusyStateOfAllGivenBusylights(isBusy bool, busylights []busyLight) er
 	return nil
 }
 
-func AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights []busyLight, apps []busyApps, wasBusy bool) (bool, error) {
+func adaptBusylightsAccordingToBusyStateOfApps(busylights []busyLight, apps []busyApps, wasBusy bool) (bool, error) {
 	if len(busylights) == 0 {
 		return wasBusy, errors.New("no busylights on given slice")
 	}
@@ -116,10 +116,10 @@ func AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights []busyLight, 
 		return wasBusy, errors.New("no apps on given slice")
 	}
 
-	isBusy := AnyOfGivenAppIsBusy(apps)
+	isBusy := anyOfGivenAppIsBusy(apps)
 
 	if isBusy != wasBusy {
-		err := ChangeBusyStateOfAllGivenBusylights(isBusy, busylights)
+		err := changeBusyStateForAllGivenBusylights(isBusy, busylights)
 		if err != nil {
 			log.Println(err)
 		}
@@ -151,13 +151,13 @@ func main() {
 
 	// Init busy state of busylights
 	wasBusy := false
-	ChangeBusyStateOfAllGivenBusylights(false, busylights)
+	changeBusyStateForAllGivenBusylights(false, busylights)
 	if err != nil {
 		log.Println(err)
 	}
 
 	for {
-		wasBusy, err = AdaptBusylightsBusyStateAccordingToBusyStateOfApps(busylights, apps, wasBusy)
+		wasBusy, err = adaptBusylightsAccordingToBusyStateOfApps(busylights, apps, wasBusy)
 		if err != nil {
 			panic(err)
 		}
